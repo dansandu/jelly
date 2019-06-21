@@ -29,43 +29,47 @@ std::optional<Token> sliceWhitespaceAt(std::string_view::const_iterator begin, s
 
 std::optional<Token> sliceNumberAt(std::string_view::const_iterator begin, std::string_view string) {
     auto sliceEnd = begin;
-    auto sufficient = false;
+    auto valid = false;
+    auto isInteger = true;
     if (sliceEnd != string.cend() && isSign(*sliceEnd))
         ++sliceEnd;
     if (sliceEnd != string.cend()) {
         if (*sliceEnd == '0') {
             ++sliceEnd;
-            sufficient = true;
+            valid = true;
         } else {
             while (sliceEnd != string.cend() && isDigit(*sliceEnd)) {
                 ++sliceEnd;
-                sufficient = true;
+                valid = true;
             }
         }
     }
 
-    if (sufficient && sliceEnd != string.cend() && isFraction(*sliceEnd)) {
+    if (valid && sliceEnd != string.cend() && isFraction(*sliceEnd)) {
         ++sliceEnd;
-        sufficient = false;
+        valid = false;
+        isInteger = false;
         while (sliceEnd != string.cend() && isDigit(*sliceEnd)) {
             ++sliceEnd;
-            sufficient = true;
+            valid = true;
         }
     }
 
-    if (sufficient && sliceEnd != string.cend() && isExponential(*sliceEnd)) {
+    if (valid && sliceEnd != string.cend() && isExponential(*sliceEnd)) {
         ++sliceEnd;
-        sufficient = false;
+        valid = false;
+        isInteger = false;
         if (sliceEnd != string.cend() && isSign(*sliceEnd))
             ++sliceEnd;
         while (sliceEnd != string.cend() && isDigit(*sliceEnd)) {
             ++sliceEnd;
-            sufficient = true;
+            valid = true;
         }
     }
 
-    if (sufficient)
-        return Token{"number", static_cast<int>(begin - string.cbegin()), static_cast<int>(sliceEnd - string.cbegin())};
+    if (valid)
+        return Token{isInteger ? "integer" : "floatingPoint", static_cast<int>(begin - string.cbegin()),
+                     static_cast<int>(sliceEnd - string.cbegin())};
     return {};
 }
 

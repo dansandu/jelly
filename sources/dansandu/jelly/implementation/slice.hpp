@@ -60,9 +60,14 @@ auto fallbackSlice([[maybe_unused]] std::string_view string) {
     return result;
 }
 
-struct BooleanSliceTraits {
-    static constexpr std::string_view identifier = "boolean";
-    static constexpr std::string_view matches[] = {"true", "false"};
+struct TrueBooleanSliceTraits {
+    static constexpr std::string_view identifier = "true";
+    static constexpr std::string_view matches[] = {"true"};
+};
+
+struct FalseBooleanSliceTraits {
+    static constexpr std::string_view identifier = "false";
+    static constexpr std::string_view matches[] = {"false"};
 };
 
 struct NullSliceTraits {
