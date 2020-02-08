@@ -5,7 +5,8 @@
 #include <string_view>
 #include <vector>
 
-namespace dansandu::jelly::implementation::tokenizer {
+namespace dansandu::jelly::implementation::tokenizer
+{
 
 std::vector<dansandu::glyph::token::Token> tokenize(std::string_view string);
 

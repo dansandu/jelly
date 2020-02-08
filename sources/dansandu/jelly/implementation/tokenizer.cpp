@@ -20,9 +20,11 @@ using dansandu::jelly::implementation::slice::sliceStringAt;
 using dansandu::jelly::implementation::slice::sliceWhitespaceAt;
 using dansandu::jelly::implementation::slice::TrueBooleanSliceTraits;
 
-namespace dansandu::jelly::implementation::tokenizer {
+namespace dansandu::jelly::implementation::tokenizer
+{
 
-std::vector<Token> tokenize(std::string_view string) {
+std::vector<Token> tokenize(std::string_view string)
+{
     auto tokens = std::vector<Token>{};
     auto slicer = fallbackSliceAt<sliceAtUsing<ArrayBeginSliceTraits>, sliceAtUsing<ArrayEndSliceTraits>,
                                   sliceAtUsing<TrueBooleanSliceTraits>, sliceAtUsing<FalseBooleanSliceTraits>,
@@ -31,11 +33,14 @@ std::vector<Token> tokenize(std::string_view string) {
                                   sliceAtUsing<ObjectEndSliceTraits>, sliceNumberAt, sliceStringAt, sliceWhitespaceAt>;
     auto position = string.cbegin();
     while (position != string.cend())
-        if (auto slice = slicer(position, string); slice) {
+        if (auto slice = slicer(position, string); slice)
+        {
             position = string.cbegin() + slice->end();
             if (slice->getIdentifier() != "whitespace")
                 tokens.push_back(std::move(*slice));
-        } else {
+        }
+        else
+        {
             auto index = position - string.cbegin();
             THROW(TokenizationError, "unrecognized symbol at position ", index, " in input string:\n", string,
                   std::string(index, ' '), "^");

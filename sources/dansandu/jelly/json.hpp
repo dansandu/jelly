@@ -6,14 +6,17 @@
 #include <string_view>
 #include <vector>
 
-namespace dansandu::jelly::json {
+namespace dansandu::jelly::json
+{
 
-class JsonDeserializationError : public std::runtime_error {
+class JsonDeserializationError : public std::runtime_error
+{
 public:
     using runtime_error::runtime_error;
 };
 
-class Json {
+class Json
+{
     friend std::ostream& operator<<(std::ostream& stream, const Json& json);
 
     using held_types = dansandu::ballotin::type_traits::type_pack<std::nullptr_t, bool, int, double, std::string,
@@ -25,20 +28,24 @@ public:
     static Json deserialize(std::string_view json);
 
     template<typename Type>
-    static std::enable_if_t<held_types::contains<Type>, Json> from(Type value) {
+    static std::enable_if_t<held_types::contains<Type>, Json> from(Type value)
+    {
         auto json = Json{};
         json.data_ = std::move(value);
         return json;
     }
 
     template<typename Type>
-    static std::enable_if_t<held_types::contains<Type>, Json> from() {
+    static std::enable_if_t<held_types::contains<Type>, Json> from()
+    {
         auto json = Json{};
         json.data_ = Type{};
         return json;
     }
 
-    Json() : data_{nullptr} {}
+    Json() : data_{nullptr}
+    {
+    }
 
     Json(const Json&) = default;
     Json(Json&&) noexcept = default;
@@ -46,35 +53,46 @@ public:
     Json& operator=(Json&&) noexcept = default;
 
     template<typename Type>
-    std::enable_if_t<held_types::contains<Type>> set(Type value) {
+    std::enable_if_t<held_types::contains<Type>> set(Type value)
+    {
         data_ = std::move(value);
     }
 
     template<typename Type>
-    std::enable_if_t<held_types::contains<Type>> set() {
+    std::enable_if_t<held_types::contains<Type>> set()
+    {
         data_ = Type{};
     }
 
     template<typename Type, typename = std::enable_if_t<held_types::contains<Type>>>
-    const Type& get() const {
-        try {
+    const Type& get() const
+    {
+        try
+        {
             return std::get<Type>(data_);
-        } catch (const std::bad_variant_access&) {
+        }
+        catch (const std::bad_variant_access&)
+        {
             THROW(std::invalid_argument, "invalid type requested in json getter -- json holds a different type");
         }
     }
 
     template<typename Type, typename = std::enable_if_t<held_types::contains<Type>>>
-    Type& get() {
-        try {
+    Type& get()
+    {
+        try
+        {
             return std::get<Type>(data_);
-        } catch (const std::bad_variant_access&) {
+        }
+        catch (const std::bad_variant_access&)
+        {
             THROW(std::invalid_argument, "invalid type requested in json getter -- json holds a different type");
         }
     }
 
     template<typename Type, typename = std::enable_if_t<held_types::contains<Type>>>
-    bool is() const {
+    bool is() const
+    {
         return std::holds_alternative<Type>(data_);
     }
 

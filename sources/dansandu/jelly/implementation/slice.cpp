@@ -7,17 +7,31 @@
 
 using dansandu::glyph::token::Token;
 
-namespace dansandu::jelly::implementation::slice {
+namespace dansandu::jelly::implementation::slice
+{
 
-static bool isSign(char c) { return (c == '-') | (c == '+'); }
+static bool isSign(char c)
+{
+    return (c == '-') | (c == '+');
+}
 
-static bool isDigit(char c) { return ('0' <= c) & (c <= '9'); }
+static bool isDigit(char c)
+{
+    return ('0' <= c) & (c <= '9');
+}
 
-static bool isExponential(char c) { return (c == 'e') | (c == 'E'); }
+static bool isExponential(char c)
+{
+    return (c == 'e') | (c == 'E');
+}
 
-static bool isFraction(char c) { return c == '.'; }
+static bool isFraction(char c)
+{
+    return c == '.';
+}
 
-std::optional<Token> sliceWhitespaceAt(std::string_view::const_iterator begin, std::string_view string) {
+std::optional<Token> sliceWhitespaceAt(std::string_view::const_iterator begin, std::string_view string)
+{
     auto sliceEnd = begin;
     while (sliceEnd != string.cend() && std::isspace(*sliceEnd))
         ++sliceEnd;
@@ -27,41 +41,51 @@ std::optional<Token> sliceWhitespaceAt(std::string_view::const_iterator begin, s
     return {};
 }
 
-std::optional<Token> sliceNumberAt(std::string_view::const_iterator begin, std::string_view string) {
+std::optional<Token> sliceNumberAt(std::string_view::const_iterator begin, std::string_view string)
+{
     auto sliceEnd = begin;
     auto valid = false;
     auto isInteger = true;
     if (sliceEnd != string.cend() && isSign(*sliceEnd))
         ++sliceEnd;
-    if (sliceEnd != string.cend()) {
-        if (*sliceEnd == '0') {
+    if (sliceEnd != string.cend())
+    {
+        if (*sliceEnd == '0')
+        {
             ++sliceEnd;
             valid = true;
-        } else {
-            while (sliceEnd != string.cend() && isDigit(*sliceEnd)) {
+        }
+        else
+        {
+            while (sliceEnd != string.cend() && isDigit(*sliceEnd))
+            {
                 ++sliceEnd;
                 valid = true;
             }
         }
     }
 
-    if (valid && sliceEnd != string.cend() && isFraction(*sliceEnd)) {
+    if (valid && sliceEnd != string.cend() && isFraction(*sliceEnd))
+    {
         ++sliceEnd;
         valid = false;
         isInteger = false;
-        while (sliceEnd != string.cend() && isDigit(*sliceEnd)) {
+        while (sliceEnd != string.cend() && isDigit(*sliceEnd))
+        {
             ++sliceEnd;
             valid = true;
         }
     }
 
-    if (valid && sliceEnd != string.cend() && isExponential(*sliceEnd)) {
+    if (valid && sliceEnd != string.cend() && isExponential(*sliceEnd))
+    {
         ++sliceEnd;
         valid = false;
         isInteger = false;
         if (sliceEnd != string.cend() && isSign(*sliceEnd))
             ++sliceEnd;
-        while (sliceEnd != string.cend() && isDigit(*sliceEnd)) {
+        while (sliceEnd != string.cend() && isDigit(*sliceEnd))
+        {
             ++sliceEnd;
             valid = true;
         }
@@ -73,14 +97,17 @@ std::optional<Token> sliceNumberAt(std::string_view::const_iterator begin, std::
     return {};
 }
 
-std::optional<Token> sliceStringAt(std::string_view::const_iterator begin, std::string_view string) {
+std::optional<Token> sliceStringAt(std::string_view::const_iterator begin, std::string_view string)
+{
     auto sliceEnd = begin;
     auto complete = false;
-    if (sliceEnd != string.cend() && *sliceEnd == '"') {
+    if (sliceEnd != string.cend() && *sliceEnd == '"')
+    {
         ++sliceEnd;
         while (sliceEnd != string.cend() && *sliceEnd != '"')
             ++sliceEnd;
-        if (sliceEnd != string.cend()) {
+        if (sliceEnd != string.cend())
+        {
             ++sliceEnd;
             complete = true;
         }

@@ -14,23 +14,29 @@ using dansandu::ballotin::container::operator<<;
 using dansandu::jelly::json::Json;
 using dansandu::jelly::json::JsonDeserializationError;
 
-TEST_CASE("Json") {
+TEST_CASE("Json")
+{
     constexpr auto jsonAsString = "{\"array\":[1,2,3],"
                                   "\"boolean\":true,"
                                   "\"integer\":7,"
                                   "\"null\":null,"
                                   "\"string\":\"myString\"}";
 
-    SECTION("deserialization") {
+    SECTION("deserialization")
+    {
         auto json = Json::deserialize(jsonAsString);
 
         REQUIRE(json.is<std::map<std::string, Json>>());
 
         auto map = json.get<std::map<std::string, Json>>();
 
-        SECTION("throws on wrong value") { REQUIRE_THROWS_AS(json.get<std::string>(), std::invalid_argument); }
+        SECTION("throws on wrong value")
+        {
+            REQUIRE_THROWS_AS(json.get<std::string>(), std::invalid_argument);
+        }
 
-        SECTION("string value") {
+        SECTION("string value")
+        {
             auto value = map.at("string");
 
             REQUIRE(value.is<std::string>());
@@ -38,7 +44,8 @@ TEST_CASE("Json") {
             REQUIRE(value.get<std::string>() == "myString");
         }
 
-        SECTION("integer value") {
+        SECTION("integer value")
+        {
             auto value = map.at("integer");
 
             REQUIRE(value.is<int>());
@@ -46,7 +53,8 @@ TEST_CASE("Json") {
             REQUIRE(value.get<int>() == 7);
         }
 
-        SECTION("null value") {
+        SECTION("null value")
+        {
             auto value = map.at("null");
 
             REQUIRE(value.is<std::nullptr_t>());
@@ -54,7 +62,8 @@ TEST_CASE("Json") {
             REQUIRE(value.get<std::nullptr_t>() == nullptr);
         }
 
-        SECTION("boolean value") {
+        SECTION("boolean value")
+        {
             auto value = map.at("boolean");
 
             REQUIRE(value.is<bool>());
@@ -62,7 +71,8 @@ TEST_CASE("Json") {
             REQUIRE(value.get<bool>());
         }
 
-        SECTION("array value") {
+        SECTION("array value")
+        {
             auto value = map.at("array");
 
             REQUIRE(value.is<std::vector<Json>>());
@@ -87,7 +97,8 @@ TEST_CASE("Json") {
         REQUIRE(json.toString() == jsonAsString);
     }
 
-    SECTION("serialization") {
+    SECTION("serialization")
+    {
         auto json = Json::from<std::vector<Json>>(
             {Json::from<std::map<std::string, Json>>(
                  {{"name", Json::from<std::string>("Jon")}, {"age", Json::from<int>(24)}}),
@@ -97,7 +108,8 @@ TEST_CASE("Json") {
         REQUIRE(json.toString() == "[{\"age\":24,\"name\":\"Jon\"},{\"age\":20,\"name\":\"Bill\"}]");
     }
 
-    SECTION("duplicate map keys") {
+    SECTION("duplicate map keys")
+    {
         REQUIRE_THROWS_AS(Json::deserialize("{\"key\": false,\"key\": \"value\"}"), JsonDeserializationError);
     }
 }

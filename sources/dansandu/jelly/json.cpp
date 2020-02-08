@@ -18,7 +18,8 @@ using dansandu::glyph::node::Node;
 using dansandu::glyph::parser::Parser;
 using dansandu::jelly::implementation::tokenizer::tokenize;
 
-namespace dansandu::jelly::json {
+namespace dansandu::jelly::json
+{
 
 // clang-format off
 static constexpr auto grammar = /* 0*/"Start    -> Value                         \n"
@@ -42,65 +43,99 @@ static constexpr auto grammar = /* 0*/"Start    -> Value                        
                                 /*18*/"Value    -> null                          ";
 // clang-format on
 
-static void deserializeWork(std::string_view json, const Node& node, Json& object) {
+static void deserializeWork(std::string_view json, const Node& node, Json& object)
+{
     if (node.isToken())
         THROW(std::runtime_error, "ill-formed syntax tree -- node should always be a production rule");
     auto ruleIndex = node.getRuleIndex();
     constexpr int fallThrough[] = {0, 6, 9, 11, 12};
-    if (std::find(std::begin(fallThrough), std::end(fallThrough), ruleIndex) != std::end(fallThrough)) {
+    if (std::find(std::begin(fallThrough), std::end(fallThrough), ruleIndex) != std::end(fallThrough))
+    {
         return deserializeWork(json, node.getChild(0), object);
-    } else if (ruleIndex == 1) {
+    }
+    else if (ruleIndex == 1)
+    {
         object.set<std::map<std::string, Json>>();
         deserializeWork(json, node.getChild(1), object);
-    } else if (ruleIndex == 2) {
+    }
+    else if (ruleIndex == 2)
+    {
         object.set<std::map<std::string, Json>>();
-    } else if (ruleIndex == 3) {
+    }
+    else if (ruleIndex == 3)
+    {
         object.set<std::vector<Json>>();
         deserializeWork(json, node.getChild(1), object);
-    } else if (ruleIndex == 4) {
+    }
+    else if (ruleIndex == 4)
+    {
         object.set<std::vector<Json>>();
-    } else if (ruleIndex == 5 || ruleIndex == 8) {
+    }
+    else if (ruleIndex == 5 || ruleIndex == 8)
+    {
         deserializeWork(json, node.getChild(0), object);
         deserializeWork(json, node.getChild(2), object);
-    } else if (ruleIndex == 7) {
+    }
+    else if (ruleIndex == 7)
+    {
         auto value = Json{};
         deserializeWork(json, node.getChild(2), value);
         const auto& token = node.getChild(0).getToken();
         auto key = std::string{json.cbegin() + token.begin() + 1, json.cbegin() + token.end() - 1};
         auto& map = object.get<std::map<std::string, Json>>();
-        if (map.find(key) == map.end()) {
+        if (map.find(key) == map.end())
+        {
             map.insert({std::move(key), std::move(value)});
-        } else {
+        }
+        else
+        {
             THROW(JsonDeserializationError, "duplicate key '", key, "' found in Json object");
         }
-    } else if (ruleIndex == 10) {
+    }
+    else if (ruleIndex == 10)
+    {
         auto value = Json{};
         deserializeWork(json, node.getChild(0), value);
         auto& vector = object.get<std::vector<Json>>();
         vector.push_back(std::move(value));
-    } else if (ruleIndex == 13) {
+    }
+    else if (ruleIndex == 13)
+    {
         const auto& token = node.getChild(0).getToken();
         object.set<std::string>({json.cbegin() + token.begin() + 1, json.cbegin() + token.end() - 1});
-    } else if (ruleIndex == 14) {
+    }
+    else if (ruleIndex == 14)
+    {
         const auto& token = node.getChild(0).getToken();
         auto value = std::string{json.cbegin() + token.begin(), json.cbegin() + token.end()};
         object.set<int>(std::stoi(value));
-    } else if (ruleIndex == 15) {
+    }
+    else if (ruleIndex == 15)
+    {
         const auto& token = node.getChild(0).getToken();
         auto value = std::string{json.cbegin() + token.begin(), json.cbegin() + token.end()};
         object.set<double>(std::stod(value));
-    } else if (ruleIndex == 16) {
+    }
+    else if (ruleIndex == 16)
+    {
         object.set<bool>(true);
-    } else if (ruleIndex == 17) {
+    }
+    else if (ruleIndex == 17)
+    {
         object.set<bool>(false);
-    } else if (ruleIndex == 18) {
+    }
+    else if (ruleIndex == 18)
+    {
         object.set<std::nullptr_t>();
-    } else {
+    }
+    else
+    {
         THROW(std::runtime_error, "unrecognized production rule index");
     }
 }
 
-Json Json::deserialize(std::string_view json) {
+Json Json::deserialize(std::string_view json)
+{
     static auto parser = Parser{grammar};
     auto object = Json{};
     auto node = parser.parse(json, tokenize);
@@ -108,44 +143,59 @@ Json Json::deserialize(std::string_view json) {
     return object;
 }
 
-std::string Json::toString() const {
+std::string Json::toString() const
+{
     std::ostringstream os;
     os << *this;
     return os.str();
 }
 
-std::ostream& operator<<(std::ostream& stream, const Json& json) {
+std::ostream& operator<<(std::ostream& stream, const Json& json)
+{
     static constexpr const char* boolean[] = {"false", "true"};
     std::visit(
         [&stream](auto&& value) {
             using value_type = std::decay_t<decltype(value)>;
-            if constexpr (std::is_same_v<value_type, std::vector<Json>>) {
+            if constexpr (std::is_same_v<value_type, std::vector<Json>>)
+            {
                 auto first = true;
                 stream << "[";
-                for (const auto& element : value) {
+                for (const auto& element : value)
+                {
                     if (!first)
                         stream << ',';
                     stream << element;
                     first = false;
                 }
                 stream << "]";
-            } else if constexpr (std::is_same_v<value_type, std::map<std::string, Json>>) {
+            }
+            else if constexpr (std::is_same_v<value_type, std::map<std::string, Json>>)
+            {
                 auto first = true;
                 stream << "{";
-                for (const auto& entry : value) {
+                for (const auto& entry : value)
+                {
                     if (!first)
                         stream << ',';
                     stream << '"' << entry.first << "\":" << entry.second;
                     first = false;
                 }
                 stream << "}";
-            } else if constexpr (std::is_same_v<value_type, bool>) {
+            }
+            else if constexpr (std::is_same_v<value_type, bool>)
+            {
                 stream << boolean[value];
-            } else if constexpr (type_pack<int, double>::contains<value_type>) {
+            }
+            else if constexpr (type_pack<int, double>::contains<value_type>)
+            {
                 stream << value;
-            } else if constexpr (std::is_same_v<value_type, std::string>) {
+            }
+            else if constexpr (std::is_same_v<value_type, std::string>)
+            {
                 stream << '"' << value << '"';
-            } else if constexpr (std::is_same_v<value_type, std::nullptr_t>) {
+            }
+            else if constexpr (std::is_same_v<value_type, std::nullptr_t>)
+            {
                 stream << "null";
             }
         },

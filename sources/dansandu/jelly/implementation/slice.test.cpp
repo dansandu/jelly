@@ -15,8 +15,10 @@ using dansandu::jelly::implementation::slice::sliceUsing;
 using dansandu::jelly::implementation::slice::sliceWhitespace;
 using dansandu::jelly::implementation::slice::TrueBooleanSliceTraits;
 
-TEST_CASE("Slice") {
-    SECTION("whitespace") {
+TEST_CASE("Slice")
+{
+    SECTION("whitespace")
+    {
         constexpr auto whitespace = "whitespace";
 
         REQUIRE(sliceWhitespace("  \n \t f()") == Token{whitespace, 0, 6});
@@ -24,7 +26,8 @@ TEST_CASE("Slice") {
         REQUIRE(!sliceWhitespace("9.0  \n"));
     }
 
-    SECTION("number") {
+    SECTION("number")
+    {
         constexpr auto integer = "integer";
         constexpr auto floatingPoint = "floatingPoint";
 
@@ -71,7 +74,8 @@ TEST_CASE("Slice") {
         REQUIRE(sliceNumber("+91.10e-10") == Token{floatingPoint, 0, 10});
     }
 
-    SECTION("string") {
+    SECTION("string")
+    {
         constexpr auto string = "string";
 
         REQUIRE(sliceString("\"some string\": 20.0") == Token{string, 0, 13});
@@ -81,7 +85,8 @@ TEST_CASE("Slice") {
         REQUIRE(sliceString("\"yada yada yada\n new paragraph\" after") == Token{string, 0, 31});
     }
 
-    SECTION("boolean") {
+    SECTION("boolean")
+    {
         REQUIRE(sliceUsing<TrueBooleanSliceTraits>("true  ") == Token{"true", 0, 4});
 
         REQUIRE(sliceUsing<FalseBooleanSliceTraits>("false") == Token{"false", 0, 5});
@@ -91,10 +96,15 @@ TEST_CASE("Slice") {
         REQUIRE(!sliceUsing<TrueBooleanSliceTraits>("True"));
     }
 
-    SECTION("fallbackSlice") {
-        SECTION("empty slicers") { REQUIRE(!fallbackSlice("anything")); }
+    SECTION("fallbackSlice")
+    {
+        SECTION("empty slicers")
+        {
+            REQUIRE(!fallbackSlice("anything"));
+        }
 
-        SECTION("nonempty slicers") {
+        SECTION("nonempty slicers")
+        {
             auto fallbackSlicer = fallbackSlice<sliceNumber, sliceWhitespace, sliceUsing<TrueBooleanSliceTraits>>;
 
             REQUIRE(fallbackSlicer("1.0e-10") == Token{"floatingPoint", 0, 7});
