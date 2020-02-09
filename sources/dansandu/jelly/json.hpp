@@ -1,3 +1,5 @@
+#pragma once
+
 #include "dansandu/ballotin/exception.hpp"
 #include "dansandu/ballotin/type_traits.hpp"
 
