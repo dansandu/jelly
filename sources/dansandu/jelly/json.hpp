@@ -31,7 +31,7 @@ public:
     static std::enable_if_t<held_types::contains<Type>, Json> from(Type value)
     {
         auto json = Json{};
-        json.data_ = std::move(value);
+        json.value_ = std::move(value);
         return json;
     }
 
@@ -39,11 +39,11 @@ public:
     static std::enable_if_t<held_types::contains<Type>, Json> from()
     {
         auto json = Json{};
-        json.data_ = Type{};
+        json.set<Type>();
         return json;
     }
 
-    Json() : data_{nullptr}
+    Json() : value_{nullptr}
     {
     }
 
@@ -55,13 +55,13 @@ public:
     template<typename Type>
     std::enable_if_t<held_types::contains<Type>> set(Type value)
     {
-        data_ = std::move(value);
+        value_ = std::move(value);
     }
 
     template<typename Type>
     std::enable_if_t<held_types::contains<Type>> set()
     {
-        data_ = Type{};
+        value_ = Type{};
     }
 
     template<typename Type, typename = std::enable_if_t<held_types::contains<Type>>>
@@ -69,7 +69,7 @@ public:
     {
         try
         {
-            return std::get<Type>(data_);
+            return std::get<Type>(value_);
         }
         catch (const std::bad_variant_access&)
         {
@@ -82,7 +82,7 @@ public:
     {
         try
         {
-            return std::get<Type>(data_);
+            return std::get<Type>(value_);
         }
         catch (const std::bad_variant_access&)
         {
@@ -93,13 +93,33 @@ public:
     template<typename Type, typename = std::enable_if_t<held_types::contains<Type>>>
     bool is() const
     {
-        return std::holds_alternative<Type>(data_);
+        return std::holds_alternative<Type>(value_);
+    }
+
+    const Json& operator[](int n) const
+    {
+        return get<std::vector<Json>>().at(n);
+    }
+
+    Json& operator[](int n)
+    {
+        return get<std::vector<Json>>().at(n);
+    }
+
+    const Json& operator[](const std::string& key) const
+    {
+        return get<std::map<std::string, Json>>().at(key);
+    }
+
+    Json& operator[](const std::string& key)
+    {
+        return get<std::map<std::string, Json>>().at(key);
     }
 
     std::string toString() const;
 
 private:
-    value_type data_;
+    value_type value_;
 };
 
 std::ostream& operator<<(std::ostream& stream, const Json& json);

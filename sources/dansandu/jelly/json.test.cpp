@@ -16,15 +16,17 @@ using dansandu::jelly::json::JsonDeserializationError;
 
 TEST_CASE("Json")
 {
-    constexpr auto jsonAsString = "{\"array\":[1,2,3],"
-                                  "\"boolean\":true,"
-                                  "\"integer\":7,"
-                                  "\"null\":null,"
-                                  "\"string\":\"myString\"}";
-
     SECTION("deserialization")
     {
+        constexpr auto jsonAsString = "{\"array\":[1,2,3],"
+                                      "\"boolean\":true,"
+                                      "\"integer\":7,"
+                                      "\"null\":null,"
+                                      "\"string\":\"myString\"}";
+
         auto json = Json::deserialize(jsonAsString);
+
+        REQUIRE(json.toString() == jsonAsString);
 
         REQUIRE(json.is<std::map<std::string, Json>>());
 
@@ -94,7 +96,26 @@ TEST_CASE("Json")
             REQUIRE(vector[2].get<int>() == 3);
         }
 
-        REQUIRE(json.toString() == jsonAsString);
+        SECTION("sugar")
+        {
+            REQUIRE(json["string"].get<std::string>() == "myString");
+
+            REQUIRE(json["boolean"].get<bool>());
+
+            REQUIRE(json["integer"].get<int>() == 7);
+
+            REQUIRE(json["null"].get<std::nullptr_t>() == nullptr);
+
+            REQUIRE(json["array"][0].get<int>() == 1);
+
+            REQUIRE(json["array"][1].get<int>() == 2);
+
+            REQUIRE(json["array"][2].get<int>() == 3);
+
+            REQUIRE_THROWS_AS(json[0], std::invalid_argument);
+
+            REQUIRE_THROWS_AS(json["array"]["first"], std::invalid_argument);
+        }
     }
 
     SECTION("serialization")

@@ -199,7 +199,7 @@ std::ostream& operator<<(std::ostream& stream, const Json& json)
                 stream << "null";
             }
         },
-        json.data_);
+        json.value_);
     return stream;
 }
 
