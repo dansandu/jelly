@@ -20,6 +20,7 @@ TEST_CASE("Json")
     {
         constexpr auto jsonAsString = "{\"array\":[1,2,3],"
                                       "\"boolean\":true,"
+                                      "\"floatingPoint\":0.25,"
                                       "\"integer\":7,"
                                       "\"null\":null,"
                                       "\"string\":\"myString\"}";
@@ -30,70 +31,83 @@ TEST_CASE("Json")
 
         REQUIRE(json.is<std::map<std::string, Json>>());
 
-        auto map = json.get<std::map<std::string, Json>>();
-
-        SECTION("throws on wrong value")
+        SECTION("retrieval with getters")
         {
-            REQUIRE_THROWS_AS(json.get<std::string>(), std::invalid_argument);
-        }
 
-        SECTION("string value")
-        {
-            auto value = map.at("string");
+            auto map = json.get<std::map<std::string, Json>>();
 
-            REQUIRE(value.is<std::string>());
+            SECTION("throws on wrong value")
+            {
+                REQUIRE_THROWS_AS(json.get<std::string>(), std::invalid_argument);
+            }
 
-            REQUIRE(value.get<std::string>() == "myString");
-        }
+            SECTION("string value")
+            {
+                auto value = map.at("string");
 
-        SECTION("integer value")
-        {
-            auto value = map.at("integer");
+                REQUIRE(value.is<std::string>());
 
-            REQUIRE(value.is<int>());
+                REQUIRE(value.get<std::string>() == "myString");
+            }
 
-            REQUIRE(value.get<int>() == 7);
-        }
+            SECTION("integer value")
+            {
+                auto value = map.at("integer");
 
-        SECTION("null value")
-        {
-            auto value = map.at("null");
+                REQUIRE(value.is<int>());
 
-            REQUIRE(value.is<std::nullptr_t>());
+                REQUIRE(value.get<int>() == 7);
+            }
 
-            REQUIRE(value.get<std::nullptr_t>() == nullptr);
-        }
+            SECTION("floating point value")
+            {
+                auto value = map.at("floatingPoint");
 
-        SECTION("boolean value")
-        {
-            auto value = map.at("boolean");
+                REQUIRE(value.is<double>());
 
-            REQUIRE(value.is<bool>());
+                REQUIRE(value.get<double>() == 0.25);
+            }
 
-            REQUIRE(value.get<bool>());
-        }
+            SECTION("null value")
+            {
+                auto value = map.at("null");
 
-        SECTION("array value")
-        {
-            auto value = map.at("array");
+                REQUIRE(value.is<std::nullptr_t>());
 
-            REQUIRE(value.is<std::vector<Json>>());
+                REQUIRE(value.get<std::nullptr_t>() == nullptr);
+            }
 
-            auto vector = value.get<std::vector<Json>>();
+            SECTION("boolean value")
+            {
+                auto value = map.at("boolean");
 
-            REQUIRE(vector.size() == 3);
+                REQUIRE(value.is<bool>());
 
-            REQUIRE(vector[0].is<int>());
+                REQUIRE(value.get<bool>());
+            }
 
-            REQUIRE(vector[0].get<int>() == 1);
+            SECTION("array value")
+            {
+                auto value = map.at("array");
 
-            REQUIRE(vector[1].is<int>());
+                REQUIRE(value.is<std::vector<Json>>());
 
-            REQUIRE(vector[1].get<int>() == 2);
+                auto vector = value.get<std::vector<Json>>();
 
-            REQUIRE(vector[2].is<int>());
+                REQUIRE(vector.size() == 3);
 
-            REQUIRE(vector[2].get<int>() == 3);
+                REQUIRE(vector[0].is<int>());
+
+                REQUIRE(vector[0].get<int>() == 1);
+
+                REQUIRE(vector[1].is<int>());
+
+                REQUIRE(vector[1].get<int>() == 2);
+
+                REQUIRE(vector[2].is<int>());
+
+                REQUIRE(vector[2].get<int>() == 3);
+            }
         }
 
         SECTION("sugar")
@@ -101,6 +115,8 @@ TEST_CASE("Json")
             REQUIRE(json["string"].get<std::string>() == "myString");
 
             REQUIRE(json["boolean"].get<bool>());
+
+            REQUIRE(json["floatingPoint"].get<double>() == 0.25);
 
             REQUIRE(json["integer"].get<int>() == 7);
 
