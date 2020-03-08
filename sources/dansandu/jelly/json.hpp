@@ -29,42 +29,29 @@ public:
 
     static Json deserialize(std::string_view json);
 
-    template<typename Type>
-    static std::enable_if_t<held_types::contains<Type>, Json> from(Type value)
-    {
-        auto json = Json{};
-        json.value_ = std::move(value);
-        return json;
-    }
-
-    template<typename Type>
-    static std::enable_if_t<held_types::contains<Type>, Json> from()
-    {
-        auto json = Json{};
-        json.set<Type>();
-        return json;
-    }
-
     Json() : value_{nullptr}
     {
     }
 
+    template<typename Type, typename = std::enable_if_t<held_types::contains<std::decay_t<Type>>>>
+    Json(Type&& value) : value_{std::forward<Type>(value)}
+    {
+    }
+
     Json(const Json&) = default;
+
     Json(Json&&) noexcept = default;
+
+    template<typename Type, typename = std::enable_if_t<held_types::contains<std::decay_t<Type>>>>
+    Json& operator=(Type&& value)
+    {
+        value_ = std::forward<Type>(value);
+        return *this;
+    }
+
     Json& operator=(const Json&) = default;
+
     Json& operator=(Json&&) noexcept = default;
-
-    template<typename Type>
-    std::enable_if_t<held_types::contains<Type>> set(Type value)
-    {
-        value_ = std::move(value);
-    }
-
-    template<typename Type>
-    std::enable_if_t<held_types::contains<Type>> set()
-    {
-        value_ = Type{};
-    }
 
     template<typename Type, typename = std::enable_if_t<held_types::contains<Type>>>
     const Type& get() const

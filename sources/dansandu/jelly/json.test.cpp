@@ -33,7 +33,6 @@ TEST_CASE("Json")
 
         SECTION("retrieval with getters")
         {
-
             auto map = json.get<std::map<std::string, Json>>();
 
             SECTION("throws on wrong value")
@@ -136,11 +135,8 @@ TEST_CASE("Json")
 
     SECTION("serialization")
     {
-        auto json = Json::from<std::vector<Json>>(
-            {Json::from<std::map<std::string, Json>>(
-                 {{"name", Json::from<std::string>("Jon")}, {"age", Json::from<int>(24)}}),
-             Json::from<std::map<std::string, Json>>(
-                 {{"name", Json::from<std::string>("Bill")}, {"age", Json::from<int>(20)}})});
+        auto json = Json{std::vector<Json>{std::map<std::string, Json>{{"name", std::string{"Jon"}}, {"age", 24}},
+                                           std::map<std::string, Json>{{"name", std::string{"Bill"}}, {"age", 20}}}};
 
         REQUIRE(json.toString() == "[{\"age\":24,\"name\":\"Jon\"},{\"age\":20,\"name\":\"Bill\"}]");
     }

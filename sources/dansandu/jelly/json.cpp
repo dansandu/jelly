@@ -55,21 +55,21 @@ static void deserializeWork(std::string_view json, const Node& node, Json& objec
     }
     else if (ruleIndex == 1)
     {
-        object.set<std::map<std::string, Json>>();
+        object = std::map<std::string, Json>{};
         deserializeWork(json, node.getChild(1), object);
     }
     else if (ruleIndex == 2)
     {
-        object.set<std::map<std::string, Json>>();
+        object = std::map<std::string, Json>{};
     }
     else if (ruleIndex == 3)
     {
-        object.set<std::vector<Json>>();
+        object = std::vector<Json>();
         deserializeWork(json, node.getChild(1), object);
     }
     else if (ruleIndex == 4)
     {
-        object.set<std::vector<Json>>();
+        object = std::vector<Json>();
     }
     else if (ruleIndex == 5 || ruleIndex == 8)
     {
@@ -102,31 +102,31 @@ static void deserializeWork(std::string_view json, const Node& node, Json& objec
     else if (ruleIndex == 13)
     {
         const auto& token = node.getChild(0).getToken();
-        object.set<std::string>({json.cbegin() + token.begin() + 1, json.cbegin() + token.end() - 1});
+        object = std::string{json.cbegin() + token.begin() + 1, json.cbegin() + token.end() - 1};
     }
     else if (ruleIndex == 14)
     {
         const auto& token = node.getChild(0).getToken();
         auto value = std::string{json.cbegin() + token.begin(), json.cbegin() + token.end()};
-        object.set<int>(std::stoi(value));
+        object = std::stoi(value);
     }
     else if (ruleIndex == 15)
     {
         const auto& token = node.getChild(0).getToken();
         auto value = std::string{json.cbegin() + token.begin(), json.cbegin() + token.end()};
-        object.set<double>(std::stod(value));
+        object = std::stod(value);
     }
     else if (ruleIndex == 16)
     {
-        object.set<bool>(true);
+        object = true;
     }
     else if (ruleIndex == 17)
     {
-        object.set<bool>(false);
+        object = false;
     }
     else if (ruleIndex == 18)
     {
-        object.set<std::nullptr_t>();
+        object = nullptr;
     }
     else
     {
