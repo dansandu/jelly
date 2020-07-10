@@ -9,7 +9,6 @@ using dansandu::ballotin::container::operator<<;
 #include <vector>
 
 using dansandu::glyph::token::Token;
-using dansandu::glyph::token::TokenizationError;
 using dansandu::jelly::implementation::tokenizer::tokenize;
 
 // clang-format off

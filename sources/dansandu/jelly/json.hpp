@@ -17,7 +17,7 @@ public:
     using runtime_error::runtime_error;
 };
 
-class Json
+class PRALINE_EXPORT Json
 {
     friend std::ostream& operator<<(std::ostream& stream, const Json& json);
 
@@ -111,6 +111,6 @@ private:
     value_type value_;
 };
 
-std::ostream& operator<<(std::ostream& stream, const Json& json);
+PRALINE_EXPORT std::ostream& operator<<(std::ostream& stream, const Json& json);
 
 }

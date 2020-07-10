@@ -1,10 +1,11 @@
 #include "dansandu/jelly/implementation/tokenizer.hpp"
 #include "dansandu/ballotin/exception.hpp"
+#include "dansandu/glyph/error.hpp"
 #include "dansandu/glyph/token.hpp"
 #include "dansandu/jelly/implementation/slice.hpp"
 
+using dansandu::glyph::error::TokenizationError;
 using dansandu::glyph::token::Token;
-using dansandu::glyph::token::TokenizationError;
 using dansandu::jelly::implementation::slice::ArrayBeginSliceTraits;
 using dansandu::jelly::implementation::slice::ArrayEndSliceTraits;
 using dansandu::jelly::implementation::slice::ColonSliceTraits;

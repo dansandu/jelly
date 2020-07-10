@@ -138,7 +138,8 @@ Json Json::deserialize(std::string_view json)
 {
     static auto parser = Parser{grammar};
     auto object = Json{};
-    auto node = parser.parse(json, tokenize);
+    auto tokens = tokenize(json);
+    auto node = parser.parse(tokens);
     deserializeWork(json, node, object);
     return object;
 }
