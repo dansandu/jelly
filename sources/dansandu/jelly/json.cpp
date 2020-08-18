@@ -6,16 +6,20 @@
 #include "dansandu/glyph/token.hpp"
 #include "dansandu/jelly/implementation/tokenizer.hpp"
 
-#include <algorithm>
+#include <iterator>
 #include <map>
 #include <sstream>
 #include <stdexcept>
+#include <string>
 #include <string_view>
 #include <vector>
 
 using dansandu::ballotin::type_traits::type_pack;
 using dansandu::glyph::node::Node;
 using dansandu::glyph::parser::Parser;
+using dansandu::glyph::symbol::Symbol;
+using dansandu::glyph::token::Token;
+using dansandu::jelly::implementation::tokenizer::SymbolPack;
 using dansandu::jelly::implementation::tokenizer::tokenize;
 
 namespace dansandu::jelly::json
@@ -43,105 +47,115 @@ static constexpr auto grammar = /* 0*/"Start    -> Value                        
                                 /*18*/"Value    -> null                          ";
 // clang-format on
 
-static void deserializeWork(std::string_view json, const Node& node, Json& object)
+Json Json::deserialize(std::string_view json)
 {
-    if (node.isToken())
-        THROW(std::runtime_error, "ill-formed syntax tree -- node should always be a production rule");
-    auto ruleIndex = node.getRuleIndex();
-    constexpr int fallThrough[] = {0, 6, 9, 11, 12};
-    if (std::find(std::begin(fallThrough), std::end(fallThrough), ruleIndex) != std::end(fallThrough))
-    {
-        return deserializeWork(json, node.getChild(0), object);
-    }
-    else if (ruleIndex == 1)
-    {
-        object = std::map<std::string, Json>{};
-        deserializeWork(json, node.getChild(1), object);
-    }
-    else if (ruleIndex == 2)
-    {
-        object = std::map<std::string, Json>{};
-    }
-    else if (ruleIndex == 3)
-    {
-        object = std::vector<Json>();
-        deserializeWork(json, node.getChild(1), object);
-    }
-    else if (ruleIndex == 4)
-    {
-        object = std::vector<Json>();
-    }
-    else if (ruleIndex == 5 || ruleIndex == 8)
-    {
-        deserializeWork(json, node.getChild(0), object);
-        deserializeWork(json, node.getChild(2), object);
-    }
-    else if (ruleIndex == 7)
-    {
-        auto value = Json{};
-        deserializeWork(json, node.getChild(2), value);
-        const auto& token = node.getChild(0).getToken();
-        auto key = std::string{json.cbegin() + token.begin() + 1, json.cbegin() + token.end() - 1};
-        auto& map = object.get<std::map<std::string, Json>>();
-        if (map.find(key) == map.end())
+    static const auto parser = Parser{grammar};
+    static const auto symbols =
+        SymbolPack{parser.getTerminalSymbol("null"),          parser.getTerminalSymbol("true"),
+                   parser.getTerminalSymbol("false"),         parser.getTerminalSymbol("integer"),
+                   parser.getTerminalSymbol("floatingPoint"), parser.getTerminalSymbol("string"),
+                   parser.getTerminalSymbol("objectBegin"),   parser.getTerminalSymbol("objectEnd"),
+                   parser.getTerminalSymbol("arrayBegin"),    parser.getTerminalSymbol("arrayEnd"),
+                   parser.getTerminalSymbol("comma"),         parser.getTerminalSymbol("colon"),
+                   parser.getDiscardedSymbolPlaceholder()};
+
+    auto stack = std::vector<Json>{};
+    auto listBeginStack = std::vector<int>{};
+
+    const auto visitor = [&](const Node& node) {
+        if (node.isToken())
         {
-            map.insert({std::move(key), std::move(value)});
+            const auto& token = node.getToken();
+            const auto symbol = token.getSymbol();
+            if (symbol == symbols.null)
+            {
+                stack.emplace_back(nullptr);
+            }
+            else if (symbol == symbols.trueBoolean)
+            {
+                stack.emplace_back(true);
+            }
+            else if (symbol == symbols.falseBoolean)
+            {
+                stack.emplace_back(false);
+            }
+            else if (symbol == symbols.integer)
+            {
+                auto string = std::string{json.cbegin() + token.begin(), json.cbegin() + token.end()};
+                stack.emplace_back(std::stoi(string));
+            }
+            else if (symbol == symbols.floatingPoint)
+            {
+                auto string = std::string{json.cbegin() + token.begin(), json.cbegin() + token.end()};
+                stack.emplace_back(std::stod(string));
+            }
+            else if (symbol == symbols.string)
+            {
+                auto string = std::string{json.cbegin() + token.begin() + 1, json.cbegin() + token.end() - 1};
+                stack.emplace_back(std::move(string));
+            }
+            else if (symbol == symbols.objectBegin)
+            {
+                listBeginStack.push_back(static_cast<int>(stack.size()));
+            }
+            else if (symbol == symbols.arrayBegin)
+            {
+                listBeginStack.push_back(static_cast<int>(stack.size()));
+            }
         }
         else
         {
-            THROW(JsonDeserializationError, "duplicate key '", key, "' found in Json object");
-        }
-    }
-    else if (ruleIndex == 10)
-    {
-        auto value = Json{};
-        deserializeWork(json, node.getChild(0), value);
-        auto& vector = object.get<std::vector<Json>>();
-        vector.push_back(std::move(value));
-    }
-    else if (ruleIndex == 13)
-    {
-        const auto& token = node.getChild(0).getToken();
-        object = std::string{json.cbegin() + token.begin() + 1, json.cbegin() + token.end() - 1};
-    }
-    else if (ruleIndex == 14)
-    {
-        const auto& token = node.getChild(0).getToken();
-        auto value = std::string{json.cbegin() + token.begin(), json.cbegin() + token.end()};
-        object = std::stoi(value);
-    }
-    else if (ruleIndex == 15)
-    {
-        const auto& token = node.getChild(0).getToken();
-        auto value = std::string{json.cbegin() + token.begin(), json.cbegin() + token.end()};
-        object = std::stod(value);
-    }
-    else if (ruleIndex == 16)
-    {
-        object = true;
-    }
-    else if (ruleIndex == 17)
-    {
-        object = false;
-    }
-    else if (ruleIndex == 18)
-    {
-        object = nullptr;
-    }
-    else
-    {
-        THROW(std::runtime_error, "unrecognized production rule index");
-    }
-}
+            const auto ruleIndex = node.getRuleIndex();
+            if (ruleIndex == 1 || ruleIndex == 2)
+            {
+                const auto begin = stack.begin() + listBeginStack.back();
+                const auto end = stack.end();
+                listBeginStack.pop_back();
 
-Json Json::deserialize(std::string_view json)
-{
-    static auto parser = Parser{grammar};
-    auto object = Json{};
-    auto tokens = tokenize(json);
-    auto node = parser.parse(tokens);
-    deserializeWork(json, node, object);
-    return object;
+                auto map = std::map<std::string, Json>{};
+                for (auto position = begin; position != end; ++position)
+                {
+                    auto key = position->get<std::string>();
+                    if (map.find(key) == map.cend())
+                    {
+                        ++position;
+                        map.emplace(std::move(key), std::move(*position));
+                    }
+                    else
+                    {
+                        THROW(JsonDeserializationError, "duplicate key '", key, "' found in Json object");
+                    }
+                }
+                stack.erase(begin, end);
+                stack.emplace_back(std::move(map));
+            }
+            else if (ruleIndex == 3 || ruleIndex == 4)
+            {
+                if (listBeginStack.empty())
+                {
+                    throw std::runtime_error{"corrupted list begin stack"};
+                }
+
+                const auto begin = stack.begin() + listBeginStack.back();
+                const auto end = stack.end();
+                listBeginStack.pop_back();
+
+                auto list = std::vector<Json>{std::make_move_iterator(begin), std::make_move_iterator(end)};
+                stack.erase(begin, end);
+                stack.emplace_back(std::move(list));
+            }
+        }
+    };
+
+    const auto tokens = tokenize(json, symbols);
+    parser.parse(tokens, visitor);
+
+    if (stack.size() != 1)
+    {
+        THROW(std::runtime_error, "stack must only contain the final json");
+    }
+
+    return std::move(stack.back());
 }
 
 std::string Json::toString() const

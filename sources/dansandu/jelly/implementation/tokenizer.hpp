@@ -1,5 +1,6 @@
 #pragma once
 
+#include "dansandu/glyph/symbol.hpp"
 #include "dansandu/glyph/token.hpp"
 
 #include <string_view>
@@ -8,6 +9,12 @@
 namespace dansandu::jelly::implementation::tokenizer
 {
 
-std::vector<dansandu::glyph::token::Token> tokenize(std::string_view string);
+struct SymbolPack
+{
+    dansandu::glyph::symbol::Symbol null, trueBoolean, falseBoolean, integer, floatingPoint, string, objectBegin,
+        objectEnd, arrayBegin, arrayEnd, comma, colon, whitespace;
+};
+
+std::vector<dansandu::glyph::token::Token> tokenize(std::string_view string, const SymbolPack& symbols);
 
 }

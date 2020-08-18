@@ -1,16 +1,11 @@
 #include "catchorg/catch/catch.hpp"
-#include "dansandu/ballotin/container.hpp"
 #include "dansandu/jelly/json.hpp"
 
-using dansandu::ballotin::container::operator<<;
-
-#include "catchorg/catch/catch.hpp"
-
-#include <iostream>
 #include <map>
 #include <string>
 #include <vector>
 
+using Catch::Detail::Approx;
 using dansandu::jelly::json::Json;
 using dansandu::jelly::json::JsonDeserializationError;
 
@@ -18,12 +13,8 @@ TEST_CASE("Json")
 {
     SECTION("deserialization")
     {
-        constexpr auto jsonAsString = "{\"array\":[1,2,3],"
-                                      "\"boolean\":true,"
-                                      "\"floatingPoint\":0.25,"
-                                      "\"integer\":7,"
-                                      "\"null\":null,"
-                                      "\"string\":\"myString\"}";
+        auto jsonAsString =
+            R"({"array":[1,2,3],"boolean":true,"floatingPoint":0.25,"integer":7,"null":null,"string":"myString"})";
 
         auto json = Json::deserialize(jsonAsString);
 
@@ -135,8 +126,8 @@ TEST_CASE("Json")
 
     SECTION("serialization")
     {
-        auto json = Json{std::vector<Json>{std::map<std::string, Json>{{"name", std::string{"Jon"}}, {"age", 24}},
-                                           std::map<std::string, Json>{{"name", std::string{"Bill"}}, {"age", 20}}}};
+        auto json = Json::list({Json::object({{"name", Json::string("Jon")}, {"age", Json{24}}}),
+                                Json::object({{"name", Json::string("Bill")}, {"age", Json{20}}})});
 
         REQUIRE(json.toString() == "[{\"age\":24,\"name\":\"Jon\"},{\"age\":20,\"name\":\"Bill\"}]");
     }
@@ -144,5 +135,82 @@ TEST_CASE("Json")
     SECTION("duplicate map keys")
     {
         REQUIRE_THROWS_AS(Json::deserialize("{\"key\": false,\"key\": \"value\"}"), JsonDeserializationError);
+    }
+
+    SECTION("big json")
+    {
+        auto jsonAsString = R"(
+            [
+                {
+                    "identifier": "f2c4deb09cc1558",
+                    "location": [50.3932, 10.3585],
+                    "timestamp": 1597780427,
+                    "samples": {"CO": 0.2, "O2": 19.5},
+                    "battery": 88,
+                    "lastCharge": 1597779221
+                },
+                {
+                    "identifier": "1eb6731c7132367",
+                    "location": [26.5938, 32.23321],
+                    "timestamp": 1597780001,
+                    "samples": {"CO": 0.184, "O2": 10.0},
+                    "battery": 41,
+                    "lastCharge": null
+
+                }
+            ]
+        )";
+
+        auto json = Json::deserialize(jsonAsString);
+
+        SECTION("check values")
+        {
+            REQUIRE(json[0]["identifier"].get<std::string>() == "f2c4deb09cc1558");
+
+            REQUIRE(json[0]["location"][0].get<double>() == Approx(50.3932));
+
+            REQUIRE(json[0]["location"][1].get<double>() == Approx(10.3585));
+
+            REQUIRE(json[0]["timestamp"].get<int>() == 1597780427);
+
+            REQUIRE(json[0]["samples"]["CO"].get<double>() == Approx(0.2));
+
+            REQUIRE(json[0]["samples"]["O2"].get<double>() == Approx(19.5));
+
+            REQUIRE(json[0]["battery"].get<int>() == 88);
+
+            REQUIRE(json[0]["lastCharge"].get<int>() == 1597779221);
+
+            REQUIRE(json[1]["identifier"].get<std::string>() == "1eb6731c7132367");
+
+            REQUIRE(json[1]["location"][0].get<double>() == Approx(26.5938));
+
+            REQUIRE(json[1]["location"][1].get<double>() == Approx(32.23321));
+
+            REQUIRE(json[1]["timestamp"].get<int>() == 1597780001);
+
+            REQUIRE(json[1]["samples"]["CO"].get<double>() == Approx(0.184));
+
+            REQUIRE(json[1]["samples"]["O2"].get<double>() == Approx(10.0));
+
+            REQUIRE(json[1]["battery"].get<int>() == 41);
+
+            REQUIRE(json[1]["lastCharge"].get<std::nullptr_t>() == nullptr);
+        }
+
+        SECTION("change values")
+        {
+            json[1]["location"][0] = 30.0;
+
+            REQUIRE(json[1]["location"][0].get<double>() == Approx(30.0));
+
+            json[1]["timestamp"].get<int>() += 20;
+
+            REQUIRE(json[1]["timestamp"].get<int>() == 1597780021);
+
+            json[1]["samples"]["CO"].get<double>() += 0.10;
+
+            REQUIRE(json[1]["samples"]["CO"].get<double>() == Approx(0.284));
+        }
     }
 }

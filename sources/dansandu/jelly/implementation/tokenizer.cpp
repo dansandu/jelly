@@ -2,50 +2,44 @@
 #include "dansandu/ballotin/exception.hpp"
 #include "dansandu/glyph/error.hpp"
 #include "dansandu/glyph/token.hpp"
-#include "dansandu/jelly/implementation/slice.hpp"
+#include "dansandu/jelly/implementation/matcher.hpp"
 
 using dansandu::glyph::error::TokenizationError;
+using dansandu::glyph::symbol::Symbol;
 using dansandu::glyph::token::Token;
-using dansandu::jelly::implementation::slice::ArrayBeginSliceTraits;
-using dansandu::jelly::implementation::slice::ArrayEndSliceTraits;
-using dansandu::jelly::implementation::slice::ColonSliceTraits;
-using dansandu::jelly::implementation::slice::CommaSliceTraits;
-using dansandu::jelly::implementation::slice::fallbackSliceAt;
-using dansandu::jelly::implementation::slice::FalseBooleanSliceTraits;
-using dansandu::jelly::implementation::slice::NullSliceTraits;
-using dansandu::jelly::implementation::slice::ObjectBeginSliceTraits;
-using dansandu::jelly::implementation::slice::ObjectEndSliceTraits;
-using dansandu::jelly::implementation::slice::sliceAtUsing;
-using dansandu::jelly::implementation::slice::sliceNumberAt;
-using dansandu::jelly::implementation::slice::sliceStringAt;
-using dansandu::jelly::implementation::slice::sliceWhitespaceAt;
-using dansandu::jelly::implementation::slice::TrueBooleanSliceTraits;
+using dansandu::jelly::implementation::matcher::ExactMatcher;
+using dansandu::jelly::implementation::matcher::makeFallbackMatcher;
+using dansandu::jelly::implementation::matcher::NumberMatcher;
+using dansandu::jelly::implementation::matcher::StringMatcher;
+using dansandu::jelly::implementation::matcher::WhitespaceMatcher;
 
 namespace dansandu::jelly::implementation::tokenizer
 {
 
-std::vector<Token> tokenize(std::string_view string)
+std::vector<Token> tokenize(std::string_view string, const SymbolPack& symbols)
 {
     auto tokens = std::vector<Token>{};
-    auto slicer = fallbackSliceAt<sliceAtUsing<ArrayBeginSliceTraits>, sliceAtUsing<ArrayEndSliceTraits>,
-                                  sliceAtUsing<TrueBooleanSliceTraits>, sliceAtUsing<FalseBooleanSliceTraits>,
-                                  sliceAtUsing<ColonSliceTraits>, sliceAtUsing<CommaSliceTraits>,
-                                  sliceAtUsing<NullSliceTraits>, sliceAtUsing<ObjectBeginSliceTraits>,
-                                  sliceAtUsing<ObjectEndSliceTraits>, sliceNumberAt, sliceStringAt, sliceWhitespaceAt>;
-    auto position = string.cbegin();
-    while (position != string.cend())
-        if (auto slice = slicer(position, string); slice)
+    auto matcher =
+        makeFallbackMatcher(ExactMatcher{symbols.arrayBegin, "["}, ExactMatcher{symbols.arrayEnd, "]"},
+                            ExactMatcher{symbols.objectBegin, "{"}, ExactMatcher{symbols.objectEnd, "}"},
+                            ExactMatcher{symbols.comma, ","}, ExactMatcher{symbols.colon, ":"},
+                            ExactMatcher{symbols.trueBoolean, "true"}, ExactMatcher{symbols.falseBoolean, "false"},
+                            ExactMatcher{symbols.null, "null"}, NumberMatcher{symbols.integer, symbols.floatingPoint},
+                            StringMatcher{symbols.string}, WhitespaceMatcher{symbols.whitespace});
+    auto position = 0;
+    while (position < static_cast<int>(string.size()))
+    {
+        if (auto match = matcher(string.substr(position)); match.second > 0)
         {
-            position = string.cbegin() + slice->end();
-            if (slice->getIdentifier() != "whitespace")
-                tokens.push_back(std::move(*slice));
+            tokens.push_back(Token{match.first, position, position + match.second});
+            position += match.second;
         }
         else
         {
-            auto index = position - string.cbegin();
-            THROW(TokenizationError, "unrecognized symbol at position ", index, " in input string:\n", string,
-                  std::string(index, ' '), "^");
+            THROW(TokenizationError, "unrecognized symbol at position ", position + 1, " in input string:\n", string,
+                  std::string(position, ' '), "^");
         }
+    }
     return tokens;
 }
 

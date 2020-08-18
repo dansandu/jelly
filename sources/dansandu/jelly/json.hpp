@@ -29,12 +29,27 @@ public:
 
     static Json deserialize(std::string_view json);
 
+    static Json object(std::map<std::string, Json> map)
+    {
+        return Json{std::move(map)};
+    }
+
+    static Json list(std::vector<Json> vector)
+    {
+        return Json{std::move(vector)};
+    }
+
+    static Json string(std::string str)
+    {
+        return Json{std::move(str)};
+    }
+
     Json() : value_{nullptr}
     {
     }
 
     template<typename Type, typename = std::enable_if_t<held_types::contains<std::decay_t<Type>>>>
-    Json(Type&& value) : value_{std::forward<Type>(value)}
+    explicit Json(Type&& value) : value_{std::forward<Type>(value)}
     {
     }
 
