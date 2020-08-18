@@ -158,14 +158,7 @@ Json Json::deserialize(std::string_view json)
     return std::move(stack.back());
 }
 
-std::string Json::toString() const
-{
-    std::ostringstream os;
-    os << *this;
-    return os.str();
-}
-
-std::ostream& operator<<(std::ostream& stream, const Json& json)
+static std::ostream& print(std::ostream& stream, const Json::value_type& value)
 {
     static constexpr const char* boolean[] = {"false", "true"};
     std::visit(
@@ -214,7 +207,25 @@ std::ostream& operator<<(std::ostream& stream, const Json& json)
                 stream << "null";
             }
         },
-        json.value_);
+        value);
+    return stream;
+}
+
+std::string Json::toString() const
+{
+    std::ostringstream stream;
+    print(stream, value_);
+    return stream.str();
+}
+
+void Json::serialize(std::ostream& stream) const
+{
+    print(stream, value_);
+}
+
+std::ostream& operator<<(std::ostream& stream, const Json& json)
+{
+    json.serialize(stream);
     return stream;
 }
 

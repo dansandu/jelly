@@ -19,8 +19,6 @@ public:
 
 class PRALINE_EXPORT Json
 {
-    friend std::ostream& operator<<(std::ostream& stream, const Json& json);
-
     using held_types = dansandu::ballotin::type_traits::type_pack<std::nullptr_t, bool, int, double, std::string,
                                                                   std::vector<Json>, std::map<std::string, Json>>;
 
@@ -121,6 +119,8 @@ public:
     }
 
     std::string toString() const;
+
+    void serialize(std::ostream& stream) const;
 
 private:
     value_type value_;
