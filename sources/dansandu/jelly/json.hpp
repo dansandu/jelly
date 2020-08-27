@@ -19,12 +19,18 @@ public:
 
 class PRALINE_EXPORT Json
 {
-    using held_types = dansandu::ballotin::type_traits::type_pack<std::nullptr_t, bool, int, double, std::string,
-                                                                  std::vector<Json>, std::map<std::string, Json>>;
-
 public:
+    using null_type = std::nullptr_t;
+    using list_type = std::vector<Json>;
+    using object_type = std::map<std::string, Json>;
+
+private:
+    using held_types =
+        dansandu::ballotin::type_traits::type_pack<null_type, bool, int, double, std::string, list_type, object_type>;
+
     using value_type = typename held_types::as_variant_type;
 
+public:
     static Json deserialize(std::string_view json);
 
     static Json object(std::map<std::string, Json> map)
@@ -119,8 +125,6 @@ public:
     }
 
     std::string toString() const;
-
-    void serialize(std::ostream& stream) const;
 
 private:
     value_type value_;

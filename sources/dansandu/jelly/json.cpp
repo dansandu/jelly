@@ -1,4 +1,5 @@
 #include "dansandu/jelly/json.hpp"
+#include "dansandu/ballotin/container.hpp"
 #include "dansandu/ballotin/exception.hpp"
 #include "dansandu/ballotin/type_traits.hpp"
 #include "dansandu/glyph/node.hpp"
@@ -14,6 +15,9 @@
 #include <string_view>
 #include <vector>
 
+using dansandu::ballotin::container::contains;
+using dansandu::ballotin::container::pop;
+using dansandu::ballotin::container::uniquePushBack;
 using dansandu::ballotin::type_traits::type_pack;
 using dansandu::glyph::node::Node;
 using dansandu::glyph::parser::Parser;
@@ -158,75 +162,112 @@ Json Json::deserialize(std::string_view json)
     return std::move(stack.back());
 }
 
-static std::ostream& print(std::ostream& stream, const Json::value_type& value)
-{
-    static constexpr const char* boolean[] = {"false", "true"};
-    std::visit(
-        [&stream](auto&& value) {
-            using value_type = std::decay_t<decltype(value)>;
-            if constexpr (std::is_same_v<value_type, std::vector<Json>>)
-            {
-                auto first = true;
-                stream << "[";
-                for (const auto& element : value)
-                {
-                    if (!first)
-                        stream << ',';
-                    stream << element;
-                    first = false;
-                }
-                stream << "]";
-            }
-            else if constexpr (std::is_same_v<value_type, std::map<std::string, Json>>)
-            {
-                auto first = true;
-                stream << "{";
-                for (const auto& entry : value)
-                {
-                    if (!first)
-                        stream << ',';
-                    stream << '"' << entry.first << "\":" << entry.second;
-                    first = false;
-                }
-                stream << "}";
-            }
-            else if constexpr (std::is_same_v<value_type, bool>)
-            {
-                stream << boolean[value];
-            }
-            else if constexpr (type_pack<int, double>::contains<value_type>)
-            {
-                stream << value;
-            }
-            else if constexpr (std::is_same_v<value_type, std::string>)
-            {
-                stream << '"' << value << '"';
-            }
-            else if constexpr (std::is_same_v<value_type, std::nullptr_t>)
-            {
-                stream << "null";
-            }
-        },
-        value);
-    return stream;
-}
-
 std::string Json::toString() const
 {
-    std::ostringstream stream;
-    print(stream, value_);
-    return stream.str();
-}
+    static constexpr const char* boolean[] = {"false", "true"};
+    static constexpr const char* separator[] = {",", ""};
 
-void Json::serialize(std::ostream& stream) const
-{
-    print(stream, value_);
+    auto stack = std::vector<const value_type*>{&value_};
+    auto visited = std::vector<const value_type*>{&value_};
+    auto serializedStack = std::vector<std::string>{};
+    auto serializedBeginStack = std::vector<int>{};
+    while (!stack.empty())
+    {
+        std::visit(
+            [&](auto&& value) {
+                using type = std::decay_t<decltype(value)>;
+                if constexpr (std::is_same_v<type, bool>)
+                {
+                    serializedStack.push_back(boolean[value]);
+                    stack.pop_back();
+                }
+                else if constexpr (type_pack<int, double>::contains<type>)
+                {
+                    auto stream = std::stringstream{};
+                    stream << value;
+                    serializedStack.push_back(stream.str());
+                    stack.pop_back();
+                }
+                else if constexpr (std::is_same_v<type, std::string>)
+                {
+                    serializedStack.push_back("\"" + value + "\"");
+                    stack.pop_back();
+                }
+                else if constexpr (std::is_same_v<type, std::nullptr_t>)
+                {
+                    serializedStack.push_back("null");
+                    stack.pop_back();
+                }
+                else if constexpr (std::is_same_v<type, std::vector<Json>>)
+                {
+                    if (!value.empty() && !contains(visited, &value.front().value_))
+                    {
+                        serializedBeginStack.push_back(serializedStack.size());
+                        for (const auto& element : value)
+                        {
+                            stack.push_back(&element.value_);
+                            visited.push_back(&element.value_);
+                        }
+                    }
+                    else
+                    {
+                        const auto serializedBegin = pop(serializedBeginStack);
+                        auto first = true;
+                        auto stream = std::stringstream{};
+                        stream << '[';
+                        for (auto position = serializedStack.cend() - 1;
+                             position != serializedStack.cbegin() + serializedBegin - 1; --position)
+                        {
+                            stream << separator[first] << *position;
+                            first = false;
+                        }
+                        stream << ']';
+                        serializedStack.erase(serializedStack.cbegin() + serializedBegin, serializedStack.cend());
+                        serializedStack.push_back(stream.str());
+                        stack.pop_back();
+                    }
+                }
+                else if constexpr (std::is_same_v<type, std::map<std::string, Json>>)
+                {
+                    if (!value.empty() && !contains(visited, &value.cbegin()->second.value_))
+                    {
+                        serializedBeginStack.push_back(serializedStack.size());
+                        for (const auto& entry : value)
+                        {
+                            stack.push_back(&entry.second.value_);
+                            visited.push_back(&entry.second.value_);
+                            serializedStack.push_back(entry.first);
+                        }
+                    }
+                    else
+                    {
+                        const auto serializedKeysBegin = pop(serializedBeginStack);
+                        const auto serializedValuesOffset =
+                            (static_cast<int>(serializedStack.size()) - serializedKeysBegin) / 2;
+                        auto first = true;
+                        auto stream = std::stringstream{};
+                        stream << '{';
+                        for (auto i = 0; i < serializedValuesOffset; ++i)
+                        {
+                            stream << separator[first] << "\"" << *(serializedStack.cbegin() + serializedKeysBegin + i)
+                                   << "\":" << *(serializedStack.cend() - i - 1);
+                            first = false;
+                        }
+                        stream << '}';
+                        serializedStack.erase(serializedStack.cbegin() + serializedKeysBegin, serializedStack.cend());
+                        serializedStack.push_back(stream.str());
+                        stack.pop_back();
+                    }
+                }
+            },
+            *stack.back());
+    }
+    return std::move(serializedStack.back());
 }
 
 std::ostream& operator<<(std::ostream& stream, const Json& json)
 {
-    json.serialize(stream);
-    return stream;
+    return stream << json.toString();
 }
 
 }

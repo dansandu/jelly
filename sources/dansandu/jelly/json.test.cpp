@@ -106,7 +106,7 @@ TEST_CASE("Json")
 
             REQUIRE(json["boolean"].get<bool>());
 
-            REQUIRE(json["floatingPoint"].get<double>() == 0.25);
+            REQUIRE(json["floatingPoint"].get<double>() == Approx(0.25));
 
             REQUIRE(json["integer"].get<int>() == 7);
 
@@ -139,43 +139,30 @@ TEST_CASE("Json")
 
     SECTION("big json")
     {
-        auto jsonAsString = R"(
-            [
-                {
-                    "identifier": "f2c4deb09cc1558",
-                    "location": [50.3932, 10.3585],
-                    "timestamp": 1597780427,
-                    "samples": {"CO": 0.2, "O2": 19.5},
-                    "battery": 88,
-                    "lastCharge": 1597779221
-                },
-                {
-                    "identifier": "1eb6731c7132367",
-                    "location": [26.5938, 32.23321],
-                    "timestamp": 1597780001,
-                    "samples": {"CO": 0.184, "O2": 10.0},
-                    "battery": 41,
-                    "lastCharge": null
-
-                }
-            ]
-        )";
+        auto jsonAsString =
+            R"([{"battery":88,"identifier":"f2c4deb09cc1558","lastCharge":1597779221,"location":[50,10],"samples":{"CO":2,"O2":19},"timestamp":1597780427},)"
+            R"({"battery":41,"identifier":"1eb6731c7132367","lastCharge":null,"location":[26,32],"samples":{"CO":18,"O2":10},"timestamp":1597780001}])";
 
         auto json = Json::deserialize(jsonAsString);
+
+        SECTION("serialized")
+        {
+            REQUIRE(json.toString() == jsonAsString);
+        }
 
         SECTION("check values")
         {
             REQUIRE(json[0]["identifier"].get<std::string>() == "f2c4deb09cc1558");
 
-            REQUIRE(json[0]["location"][0].get<double>() == Approx(50.3932));
+            REQUIRE(json[0]["location"][0].get<int>() == 50);
 
-            REQUIRE(json[0]["location"][1].get<double>() == Approx(10.3585));
+            REQUIRE(json[0]["location"][1].get<int>() == 10);
 
             REQUIRE(json[0]["timestamp"].get<int>() == 1597780427);
 
-            REQUIRE(json[0]["samples"]["CO"].get<double>() == Approx(0.2));
+            REQUIRE(json[0]["samples"]["CO"].get<int>() == 2);
 
-            REQUIRE(json[0]["samples"]["O2"].get<double>() == Approx(19.5));
+            REQUIRE(json[0]["samples"]["O2"].get<int>() == 19);
 
             REQUIRE(json[0]["battery"].get<int>() == 88);
 
@@ -183,15 +170,15 @@ TEST_CASE("Json")
 
             REQUIRE(json[1]["identifier"].get<std::string>() == "1eb6731c7132367");
 
-            REQUIRE(json[1]["location"][0].get<double>() == Approx(26.5938));
+            REQUIRE(json[1]["location"][0].get<int>() == 26);
 
-            REQUIRE(json[1]["location"][1].get<double>() == Approx(32.23321));
+            REQUIRE(json[1]["location"][1].get<int>() == 32);
 
             REQUIRE(json[1]["timestamp"].get<int>() == 1597780001);
 
-            REQUIRE(json[1]["samples"]["CO"].get<double>() == Approx(0.184));
+            REQUIRE(json[1]["samples"]["CO"].get<int>() == 18);
 
-            REQUIRE(json[1]["samples"]["O2"].get<double>() == Approx(10.0));
+            REQUIRE(json[1]["samples"]["O2"].get<int>() == 10);
 
             REQUIRE(json[1]["battery"].get<int>() == 41);
 
@@ -208,9 +195,9 @@ TEST_CASE("Json")
 
             REQUIRE(json[1]["timestamp"].get<int>() == 1597780021);
 
-            json[1]["samples"]["CO"].get<double>() += 0.10;
+            json[1]["samples"]["CO"].get<int>() += 20;
 
-            REQUIRE(json[1]["samples"]["CO"].get<double>() == Approx(0.284));
+            REQUIRE(json[1]["samples"]["CO"].get<int>() == 38);
         }
     }
 }
