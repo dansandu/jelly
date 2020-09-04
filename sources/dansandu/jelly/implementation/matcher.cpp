@@ -1,5 +1,6 @@
 #include "dansandu/jelly/implementation/matcher.hpp"
 
+#include <algorithm>
 #include <string>
 #include <string_view>
 

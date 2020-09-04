@@ -202,7 +202,7 @@ std::string Json::toString() const
                 {
                     if (!value.empty() && !contains(visited, &value.front().value_))
                     {
-                        serializedBeginStack.push_back(serializedStack.size());
+                        serializedBeginStack.push_back(static_cast<int>(serializedStack.size()));
                         for (const auto& element : value)
                         {
                             stack.push_back(&element.value_);
@@ -212,11 +212,12 @@ std::string Json::toString() const
                     else
                     {
                         const auto serializedBegin = pop(serializedBeginStack);
+                        const auto reversedSerializedEnd = static_cast<int>(serializedStack.size()) - serializedBegin;
                         auto first = true;
                         auto stream = std::stringstream{};
                         stream << '[';
-                        for (auto position = serializedStack.cend() - 1;
-                             position != serializedStack.cbegin() + serializedBegin - 1; --position)
+                        for (auto position = serializedStack.crbegin();
+                             position != serializedStack.crbegin() + reversedSerializedEnd; ++position)
                         {
                             stream << separator[first] << *position;
                             first = false;
@@ -231,7 +232,7 @@ std::string Json::toString() const
                 {
                     if (!value.empty() && !contains(visited, &value.cbegin()->second.value_))
                     {
-                        serializedBeginStack.push_back(serializedStack.size());
+                        serializedBeginStack.push_back(static_cast<int>(serializedStack.size()));
                         for (const auto& entry : value)
                         {
                             stack.push_back(&entry.second.value_);
