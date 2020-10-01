@@ -139,9 +139,10 @@ TEST_CASE("Json")
 
     SECTION("big json")
     {
-        auto jsonAsString =
-            R"([{"battery":88,"identifier":"f2c4deb09cc1558","lastCharge":1597779221,"location":[50,10],"samples":{"CO":2,"O2":19},"timestamp":1597780427},)"
-            R"({"battery":41,"identifier":"1eb6731c7132367","lastCharge":null,"location":[26,32],"samples":{"CO":18,"O2":10},"timestamp":1597780001}])";
+        auto jsonAsString = R"([{"battery":88,"identifier":"f2c4deb09cc1558","lastCharge":1597779221,"list":[],)"
+                            R"("location":[50,10],"samples":{"CO":2,"O2":19},"timestamp":1597780427},)"
+                            R"({"battery":41,"identifier":"1eb6731c7132367","lastCharge":null,"location":[26,32],)"
+                            R"("map":{},"samples":{"CO":18,"O2":10},"timestamp":1597780001}])";
 
         auto json = Json::deserialize(jsonAsString);
 
@@ -153,6 +154,8 @@ TEST_CASE("Json")
         SECTION("check values")
         {
             REQUIRE(json[0]["identifier"].get<std::string>() == "f2c4deb09cc1558");
+
+            REQUIRE(json[0]["list"].get<Json::list_type>().empty());
 
             REQUIRE(json[0]["location"][0].get<int>() == 50);
 
@@ -169,6 +172,8 @@ TEST_CASE("Json")
             REQUIRE(json[0]["lastCharge"].get<int>() == 1597779221);
 
             REQUIRE(json[1]["identifier"].get<std::string>() == "1eb6731c7132367");
+
+            REQUIRE(json[1]["map"].get<Json::object_type>().empty());
 
             REQUIRE(json[1]["location"][0].get<int>() == 26);
 
