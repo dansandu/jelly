@@ -152,7 +152,7 @@ Json Json::deserialize(const std::string_view json)
     return std::move(stack.back());
 }
 
-std::string Json::toString() const
+std::string Json::serialize() const
 {
     static constexpr const char* boolean[] = {"false", "true"};
     static constexpr const char* separator[] = {",", ""};
@@ -257,7 +257,7 @@ std::string Json::toString() const
 
 std::ostream& operator<<(std::ostream& stream, const Json& json)
 {
-    return stream << json.toString();
+    return stream << json.serialize();
 }
 
 }

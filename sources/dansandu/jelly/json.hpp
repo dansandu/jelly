@@ -124,7 +124,7 @@ public:
         return get<object_type>().at(key);
     }
 
-    std::string toString() const;
+    std::string serialize() const;
 
 private:
     value_type value_;
