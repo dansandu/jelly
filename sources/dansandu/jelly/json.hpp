@@ -19,20 +19,26 @@ public:
 
 class PRALINE_EXPORT Json
 {
-    using held_types = dansandu::ballotin::type_traits::type_pack<std::nullptr_t, bool, int, double, std::string,
-                                                                  std::vector<Json>, std::map<std::string, Json>>;
-
 public:
+    using null_type = std::nullptr_t;
+    using list_type = std::vector<Json>;
+    using object_type = std::map<std::string, Json>;
+
+private:
+    using held_types =
+        dansandu::ballotin::type_traits::type_pack<null_type, bool, int, double, std::string, list_type, object_type>;
+
     using value_type = typename held_types::as_variant_type;
 
-    static Json deserialize(std::string_view json);
+public:
+    static Json deserialize(const std::string_view json);
 
-    static Json object(std::map<std::string, Json> map)
+    static Json object(object_type map)
     {
         return Json{std::move(map)};
     }
 
-    static Json list(std::vector<Json> vector)
+    static Json list(list_type vector)
     {
         return Json{std::move(vector)};
     }
@@ -98,29 +104,27 @@ public:
         return std::holds_alternative<Type>(value_);
     }
 
-    const Json& operator[](int n) const
+    const Json& operator[](const int index) const
     {
-        return get<std::vector<Json>>().at(n);
+        return get<list_type>().at(index);
     }
 
-    Json& operator[](int n)
+    Json& operator[](const int index)
     {
-        return get<std::vector<Json>>().at(n);
+        return get<list_type>().at(index);
     }
 
     const Json& operator[](const std::string& key) const
     {
-        return get<std::map<std::string, Json>>().at(key);
+        return get<object_type>().at(key);
     }
 
     Json& operator[](const std::string& key)
     {
-        return get<std::map<std::string, Json>>().at(key);
+        return get<object_type>().at(key);
     }
 
-    std::string toString() const;
-
-    void serialize(std::ostream& stream) const;
+    std::string serialize() const;
 
 private:
     value_type value_;
