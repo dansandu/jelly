@@ -1,4 +1,4 @@
-#include "dansandu/jelly/implementation/matcher.hpp"
+#include "dansandu/jelly/internal/matcher.hpp"
 
 #include <algorithm>
 #include <string>
@@ -6,7 +6,7 @@
 
 using dansandu::glyph::symbol::Symbol;
 
-namespace dansandu::jelly::implementation::matcher
+namespace dansandu::jelly::internal::matcher
 {
 
 static bool isSign(char c)

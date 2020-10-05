@@ -1,19 +1,19 @@
-#include "dansandu/jelly/implementation/tokenizer.hpp"
+#include "dansandu/jelly/internal/tokenizer.hpp"
 #include "dansandu/ballotin/exception.hpp"
 #include "dansandu/glyph/error.hpp"
 #include "dansandu/glyph/token.hpp"
-#include "dansandu/jelly/implementation/matcher.hpp"
+#include "dansandu/jelly/internal/matcher.hpp"
 
 using dansandu::glyph::error::TokenizationError;
 using dansandu::glyph::symbol::Symbol;
 using dansandu::glyph::token::Token;
-using dansandu::jelly::implementation::matcher::ExactMatcher;
-using dansandu::jelly::implementation::matcher::makeFallbackMatcher;
-using dansandu::jelly::implementation::matcher::NumberMatcher;
-using dansandu::jelly::implementation::matcher::StringMatcher;
-using dansandu::jelly::implementation::matcher::WhitespaceMatcher;
+using dansandu::jelly::internal::matcher::ExactMatcher;
+using dansandu::jelly::internal::matcher::makeFallbackMatcher;
+using dansandu::jelly::internal::matcher::NumberMatcher;
+using dansandu::jelly::internal::matcher::StringMatcher;
+using dansandu::jelly::internal::matcher::WhitespaceMatcher;
 
-namespace dansandu::jelly::implementation::tokenizer
+namespace dansandu::jelly::internal::tokenizer
 {
 
 std::vector<Token> tokenize(std::string_view string, const SymbolPack& symbols)

@@ -5,7 +5,7 @@
 #include "dansandu/glyph/node.hpp"
 #include "dansandu/glyph/parser.hpp"
 #include "dansandu/glyph/token.hpp"
-#include "dansandu/jelly/implementation/tokenizer.hpp"
+#include "dansandu/jelly/internal/tokenizer.hpp"
 
 #include <iterator>
 #include <map>
@@ -23,8 +23,8 @@ using dansandu::glyph::node::Node;
 using dansandu::glyph::parser::Parser;
 using dansandu::glyph::symbol::Symbol;
 using dansandu::glyph::token::Token;
-using dansandu::jelly::implementation::tokenizer::SymbolPack;
-using dansandu::jelly::implementation::tokenizer::tokenize;
+using dansandu::jelly::internal::tokenizer::SymbolPack;
+using dansandu::jelly::internal::tokenizer::tokenize;
 
 namespace dansandu::jelly::json
 {

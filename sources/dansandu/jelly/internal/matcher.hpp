@@ -6,7 +6,7 @@
 #include <string_view>
 #include <type_traits>
 
-namespace dansandu::jelly::implementation::matcher
+namespace dansandu::jelly::internal::matcher
 {
 
 class ExactMatcher
