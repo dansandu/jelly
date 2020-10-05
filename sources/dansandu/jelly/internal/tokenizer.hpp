@@ -6,7 +6,7 @@
 #include <string_view>
 #include <vector>
 
-namespace dansandu::jelly::implementation::tokenizer
+namespace dansandu::jelly::internal::tokenizer
 {
 
 struct SymbolPack

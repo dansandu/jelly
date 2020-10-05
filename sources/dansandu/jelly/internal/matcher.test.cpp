@@ -1,13 +1,13 @@
 #include "catchorg/catch/catch.hpp"
 #include "dansandu/glyph/symbol.hpp"
-#include "dansandu/jelly/implementation/matcher.hpp"
+#include "dansandu/jelly/internal/matcher.hpp"
 
 using dansandu::glyph::symbol::Symbol;
-using dansandu::jelly::implementation::matcher::ExactMatcher;
-using dansandu::jelly::implementation::matcher::makeFallbackMatcher;
-using dansandu::jelly::implementation::matcher::NumberMatcher;
-using dansandu::jelly::implementation::matcher::StringMatcher;
-using dansandu::jelly::implementation::matcher::WhitespaceMatcher;
+using dansandu::jelly::internal::matcher::ExactMatcher;
+using dansandu::jelly::internal::matcher::makeFallbackMatcher;
+using dansandu::jelly::internal::matcher::NumberMatcher;
+using dansandu::jelly::internal::matcher::StringMatcher;
+using dansandu::jelly::internal::matcher::WhitespaceMatcher;
 
 using Match = std::pair<Symbol, int>;
 

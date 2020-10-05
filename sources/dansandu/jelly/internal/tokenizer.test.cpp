@@ -1,13 +1,13 @@
 #include "catchorg/catch/catch.hpp"
 #include "dansandu/glyph/token.hpp"
-#include "dansandu/jelly/implementation/tokenizer.hpp"
+#include "dansandu/jelly/internal/tokenizer.hpp"
 
 #include <vector>
 
 using dansandu::glyph::symbol::Symbol;
 using dansandu::glyph::token::Token;
-using dansandu::jelly::implementation::tokenizer::SymbolPack;
-using dansandu::jelly::implementation::tokenizer::tokenize;
+using dansandu::jelly::internal::tokenizer::SymbolPack;
+using dansandu::jelly::internal::tokenizer::tokenize;
 
 // clang-format off
 TEST_CASE("Tokenizer")
