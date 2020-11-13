@@ -244,6 +244,8 @@ TEST_CASE("Json")
             REQUIRE_THROWS_AS(json[0], std::invalid_argument);
 
             REQUIRE_THROWS_AS(json["array"]["first"], std::invalid_argument);
+
+            REQUIRE_THROWS_AS(static_cast<std::string>(json["boolean"]), std::invalid_argument);
         }
 
         SECTION("add new object member")

@@ -86,17 +86,17 @@ Json Json::deserialize(const std::string_view json)
             }
             else if (symbol == symbols.integer)
             {
-                const auto string = std::string{json.cbegin() + token.begin(), json.cbegin() + token.end()};
+                const auto string = string_type{json.cbegin() + token.begin(), json.cbegin() + token.end()};
                 stack.emplace_back(std::stoi(string));
             }
             else if (symbol == symbols.floatingPoint)
             {
-                const auto string = std::string{json.cbegin() + token.begin(), json.cbegin() + token.end()};
+                const auto string = string_type{json.cbegin() + token.begin(), json.cbegin() + token.end()};
                 stack.emplace_back(std::stod(string));
             }
             else if (symbol == symbols.string)
             {
-                const auto string = std::string{json.cbegin() + token.begin() + 1, json.cbegin() + token.end() - 1};
+                auto string = string_type{json.cbegin() + token.begin() + 1, json.cbegin() + token.end() - 1};
                 stack.emplace_back(std::move(string));
             }
             else if (symbol == symbols.objectBegin)
@@ -117,10 +117,10 @@ Json Json::deserialize(const std::string_view json)
                 const auto end = stack.end();
                 listBeginStack.pop_back();
 
-                auto map = std::map<std::string, Json>{};
+                auto map = std::map<string_type, Json>{};
                 for (auto position = begin; position != end; ++position)
                 {
-                    auto key = position->get<std::string>();
+                    auto key = position->get<string_type>();
                     if (map.find(key) == map.cend())
                     {
                         ++position;
@@ -178,17 +178,17 @@ std::string Json::serialize() const
                 serializedStack.push_back(stream.str());
                 stack.pop_back();
             }
-            else if constexpr (std::is_same_v<type, std::string>)
+            else if constexpr (std::is_same_v<type, string_type>)
             {
                 serializedStack.push_back("\"" + value + "\"");
                 stack.pop_back();
             }
-            else if constexpr (std::is_same_v<type, std::nullptr_t>)
+            else if constexpr (std::is_same_v<type, null_type>)
             {
                 serializedStack.push_back("null");
                 stack.pop_back();
             }
-            else if constexpr (std::is_same_v<type, std::vector<Json>>)
+            else if constexpr (std::is_same_v<type, list_type>)
             {
                 if (!contains(visited, stack.back()))
                 {
@@ -218,7 +218,7 @@ std::string Json::serialize() const
                     stack.pop_back();
                 }
             }
-            else if constexpr (std::is_same_v<type, std::map<std::string, Json>>)
+            else if constexpr (std::is_same_v<type, object_type>)
             {
                 if (!contains(visited, stack.back()))
                 {

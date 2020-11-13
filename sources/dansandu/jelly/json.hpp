@@ -22,12 +22,14 @@ class PRALINE_EXPORT Json
 {
 public:
     using null_type = std::nullptr_t;
+    using string_type = std::string;
     using list_type = std::vector<Json>;
-    using object_type = std::map<std::string, Json>;
+    using object_type = std::map<string_type, Json>;
 
 private:
     using held_types =
-        dansandu::ballotin::type_traits::type_pack<null_type, bool, int, double, std::string, list_type, object_type>;
+        dansandu::ballotin::type_traits::type_pack<null_type, bool, int, double, string_type, list_type, object_type>;
+    using safe_cast_types = dansandu::ballotin::type_traits::type_pack<bool, int, double, string_type>;
 
     using value_type = typename held_types::as_variant_type;
 
@@ -39,12 +41,17 @@ public:
         return Json{std::move(map)};
     }
 
+    static Json object()
+    {
+        return Json{object_type{}};
+    }
+
     static Json list(list_type vector)
     {
         return Json{std::move(vector)};
     }
 
-    static Json string(std::string str)
+    static Json string(string_type str)
     {
         return Json{std::move(str)};
     }
@@ -126,6 +133,13 @@ public:
     }
 
     std::string serialize() const;
+
+    template<typename Type, typename DecayedType = std::decay_t<Type>,
+             typename = std::enable_if_t<safe_cast_types::contains<DecayedType>>>
+    operator Type() const
+    {
+        return get<DecayedType>();
+    }
 
 private:
     value_type value_;
