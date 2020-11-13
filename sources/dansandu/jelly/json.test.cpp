@@ -245,6 +245,23 @@ TEST_CASE("Json")
 
             REQUIRE_THROWS_AS(json["array"]["first"], std::invalid_argument);
         }
+
+        SECTION("add new object member")
+        {
+            SECTION("initialization")
+            {
+                json["newNull"];
+
+                REQUIRE(json["newNull"].get<Json::null_type>() == nullptr);
+            }
+
+            SECTION("assignment")
+            {
+                json["newInteger"] = 999;
+
+                REQUIRE(json["newInteger"].get<int>() == 999);
+            }
+        }
     }
 
     SECTION("big json")

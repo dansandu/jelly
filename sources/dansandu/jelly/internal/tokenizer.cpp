@@ -37,7 +37,7 @@ std::vector<Token> tokenize(std::string_view string, const SymbolPack& symbols)
         else
         {
             THROW(TokenizationError, "unrecognized symbol at position ", position + 1, " in input string:\n", string,
-                  std::string(position, ' '), "^");
+                  "\n", std::string(position, ' '), "^");
         }
     }
     return tokens;

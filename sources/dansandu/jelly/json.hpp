@@ -5,6 +5,7 @@
 
 #include <map>
 #include <stdexcept>
+#include <string>
 #include <string_view>
 #include <vector>
 
@@ -121,7 +122,7 @@ public:
 
     Json& operator[](const std::string& key)
     {
-        return get<object_type>().at(key);
+        return get<object_type>()[key];
     }
 
     std::string serialize() const;

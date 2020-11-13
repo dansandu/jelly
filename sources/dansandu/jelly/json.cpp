@@ -7,6 +7,7 @@
 #include "dansandu/glyph/token.hpp"
 #include "dansandu/jelly/internal/tokenizer.hpp"
 
+#include <fstream>
 #include <iterator>
 #include <map>
 #include <sstream>
