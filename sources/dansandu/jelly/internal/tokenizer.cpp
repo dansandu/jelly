@@ -1,12 +1,12 @@
 #include "dansandu/jelly/internal/tokenizer.hpp"
 #include "dansandu/ballotin/exception.hpp"
-#include "dansandu/glyph/error.hpp"
 #include "dansandu/glyph/token.hpp"
+#include "dansandu/jelly/error.hpp"
 #include "dansandu/jelly/internal/matcher.hpp"
 
-using dansandu::glyph::error::TokenizationError;
 using dansandu::glyph::symbol::Symbol;
 using dansandu::glyph::token::Token;
+using dansandu::jelly::error::JsonDeserializationError;
 using dansandu::jelly::internal::matcher::ExactMatcher;
 using dansandu::jelly::internal::matcher::makeFallbackMatcher;
 using dansandu::jelly::internal::matcher::NumberMatcher;
@@ -36,8 +36,8 @@ std::vector<Token> tokenize(std::string_view string, const SymbolPack& symbols)
         }
         else
         {
-            THROW(TokenizationError, "unrecognized symbol at position ", position + 1, " in input string:\n", string,
-                  "\n", std::string(position, ' '), "^");
+            THROW(JsonDeserializationError, "unrecognized symbol at position ", position + 1, " in input string:\n",
+                  string, "\n", std::string(position, ' '), "^");
         }
     }
     return tokens;

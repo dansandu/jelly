@@ -2,9 +2,11 @@
 #include "dansandu/ballotin/container.hpp"
 #include "dansandu/ballotin/exception.hpp"
 #include "dansandu/ballotin/type_traits.hpp"
+#include "dansandu/glyph/error.hpp"
 #include "dansandu/glyph/node.hpp"
 #include "dansandu/glyph/parser.hpp"
 #include "dansandu/glyph/token.hpp"
+#include "dansandu/jelly/error.hpp"
 #include "dansandu/jelly/internal/tokenizer.hpp"
 
 #include <fstream>
@@ -20,10 +22,13 @@ using dansandu::ballotin::container::contains;
 using dansandu::ballotin::container::pop;
 using dansandu::ballotin::container::uniquePushBack;
 using dansandu::ballotin::type_traits::type_pack;
+using dansandu::glyph::error::SyntaxError;
+using dansandu::glyph::error::TokenizationError;
 using dansandu::glyph::node::Node;
 using dansandu::glyph::parser::Parser;
 using dansandu::glyph::symbol::Symbol;
 using dansandu::glyph::token::Token;
+using dansandu::jelly::error::JsonDeserializationError;
 using dansandu::jelly::internal::tokenizer::SymbolPack;
 using dansandu::jelly::internal::tokenizer::tokenize;
 
@@ -49,7 +54,7 @@ static constexpr auto grammar = /* 0*/"Start    -> Value                        
                                 /*15*/"Value    -> floatingPoint                 \n"
                                 /*16*/"Value    -> true                          \n"
                                 /*17*/"Value    -> false                         \n"
-                                /*18*/"Value    -> null                          ";
+                                /*18*/"Value    -> null                            ";
 // clang-format on
 
 Json Json::deserialize(const std::string_view json)
@@ -147,8 +152,15 @@ Json Json::deserialize(const std::string_view json)
         }
     };
 
-    const auto tokens = tokenize(json, symbols);
-    parser.parse(tokens, visitor);
+    try
+    {
+        const auto tokens = tokenize(json, symbols);
+        parser.parse(tokens, visitor);
+    }
+    catch (const SyntaxError& error)
+    {
+        THROW(JsonDeserializationError, error.what());
+    }
 
     return std::move(stack.back());
 }

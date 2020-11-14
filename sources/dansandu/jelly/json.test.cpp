@@ -1,4 +1,5 @@
 #include "catchorg/catch/catch.hpp"
+#include "dansandu/jelly/error.hpp"
 #include "dansandu/jelly/json.hpp"
 
 #include <map>
@@ -6,8 +7,8 @@
 #include <vector>
 
 using Catch::Detail::Approx;
+using dansandu::jelly::error::JsonDeserializationError;
 using dansandu::jelly::json::Json;
-using dansandu::jelly::json::JsonDeserializationError;
 
 TEST_CASE("Json")
 {
@@ -129,11 +130,6 @@ TEST_CASE("Json")
         }
     }
 
-    SECTION("duplicate object keys")
-    {
-        REQUIRE_THROWS_AS(Json::deserialize("{\"key\": false,\"key\": \"value\"}"), JsonDeserializationError);
-    }
-
     SECTION("medium json")
     {
         auto jsonAsString =
@@ -151,7 +147,7 @@ TEST_CASE("Json")
 
             SECTION("throws on wrong value")
             {
-                REQUIRE_THROWS_AS(json.get<std::string>(), std::invalid_argument);
+                REQUIRE_THROWS_AS(json.get<std::string>(), std::logic_error);
             }
 
             SECTION("string value")
@@ -241,11 +237,11 @@ TEST_CASE("Json")
 
             REQUIRE(json["array"][2].get<int>() == 3);
 
-            REQUIRE_THROWS_AS(json[0], std::invalid_argument);
+            REQUIRE_THROWS_AS(json[0], std::logic_error);
 
-            REQUIRE_THROWS_AS(json["array"]["first"], std::invalid_argument);
+            REQUIRE_THROWS_AS(json["array"]["first"], std::logic_error);
 
-            REQUIRE_THROWS_AS(static_cast<std::string>(json["boolean"]), std::invalid_argument);
+            REQUIRE_THROWS_AS(static_cast<std::string>(json["boolean"]), std::logic_error);
         }
 
         SECTION("add new object member")
@@ -333,5 +329,15 @@ TEST_CASE("Json")
 
             REQUIRE(json[1]["samples"]["CO"].get<int>() == 38);
         }
+    }
+
+    SECTION("bad json")
+    {
+        REQUIRE_THROWS_AS(Json::deserialize(R"({"badColonMember"; [1, 2, 3]})"), JsonDeserializationError);
+
+        REQUIRE_THROWS_AS(Json::deserialize(R"({"goodString": missingQuoteString")"), JsonDeserializationError);
+
+        REQUIRE_THROWS_AS(Json::deserialize(R"({"duplicateKey": false, "duplicateKey": "value"})"),
+                          JsonDeserializationError);
     }
 }

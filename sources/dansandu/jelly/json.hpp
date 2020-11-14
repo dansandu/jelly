@@ -12,12 +12,6 @@
 namespace dansandu::jelly::json
 {
 
-class JsonDeserializationError : public std::runtime_error
-{
-public:
-    using runtime_error::runtime_error;
-};
-
 class PRALINE_EXPORT Json
 {
 public:
@@ -89,7 +83,7 @@ public:
         }
         catch (const std::bad_variant_access&)
         {
-            THROW(std::invalid_argument, "invalid type requested in json getter -- json holds a different type");
+            THROW(std::logic_error, "invalid type requested in json getter -- json holds a different type");
         }
     }
 
@@ -102,7 +96,7 @@ public:
         }
         catch (const std::bad_variant_access&)
         {
-            THROW(std::invalid_argument, "invalid type requested in json getter -- json holds a different type");
+            THROW(std::logic_error, "invalid type requested in json getter -- json holds a different type");
         }
     }
 

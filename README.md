@@ -36,7 +36,7 @@ int main(int, char**)
 
     const std::string orderId          = order["orderId"];
     const int         firstItemCount   = order["items"][0]["count"];
-    const int         secondItemCount  = order["items"][1]["count"].get<int>();
+    const auto        secondItemCount  = order["items"][1]["count"].get<int>();
     const double      vat              = order["vat"];
     const bool        hasPreviousOrder = !order["previousOrderId"].is<std::nullptr_t>();
 
