@@ -22,10 +22,10 @@ public:
 
 private:
     using held_types =
-        dansandu::ballotin::type_traits::type_pack<null_type, bool, int, double, string_type, list_type, object_type>;
-    using safe_cast_types = dansandu::ballotin::type_traits::type_pack<bool, int, double, string_type>;
+        dansandu::ballotin::type_traits::TypePack<null_type, bool, int, double, string_type, list_type, object_type>;
+    using safe_cast_types = dansandu::ballotin::type_traits::TypePack<bool, int, double, string_type>;
 
-    using value_type = typename held_types::as_variant_type;
+    using value_type = typename held_types::VariantType;
 
 public:
     static Json deserialize(const std::string_view json);

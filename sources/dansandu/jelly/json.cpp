@@ -21,7 +21,7 @@
 using dansandu::ballotin::container::contains;
 using dansandu::ballotin::container::pop;
 using dansandu::ballotin::container::uniquePushBack;
-using dansandu::ballotin::type_traits::type_pack;
+using dansandu::ballotin::type_traits::TypePack;
 using dansandu::glyph::error::SyntaxError;
 using dansandu::glyph::error::TokenizationError;
 using dansandu::glyph::node::Node;
@@ -183,7 +183,7 @@ std::string Json::serialize() const
                 serializedStack.push_back(boolean[value]);
                 stack.pop_back();
             }
-            else if constexpr (type_pack<int, double>::contains<type>)
+            else if constexpr (TypePack<int, double>::contains<type>)
             {
                 auto stream = std::stringstream{};
                 stream << value;
