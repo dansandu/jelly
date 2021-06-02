@@ -176,94 +176,95 @@ std::string Json::serialize() const
     auto serializedBeginStack = std::vector<int>{};
     while (!stack.empty())
     {
-        const auto visitor = [&](auto&& value) {
-            using type = std::decay_t<decltype(value)>;
-            if constexpr (std::is_same_v<type, bool>)
-            {
-                serializedStack.push_back(boolean[value]);
-                stack.pop_back();
-            }
-            else if constexpr (TypePack<int, double>::contains<type>)
-            {
-                auto stream = std::stringstream{};
-                stream << value;
-                serializedStack.push_back(stream.str());
-                stack.pop_back();
-            }
-            else if constexpr (std::is_same_v<type, string_type>)
-            {
-                serializedStack.push_back("\"" + value + "\"");
-                stack.pop_back();
-            }
-            else if constexpr (std::is_same_v<type, null_type>)
-            {
-                serializedStack.push_back("null");
-                stack.pop_back();
-            }
-            else if constexpr (std::is_same_v<type, list_type>)
-            {
-                if (!contains(visited, stack.back()))
+        std::visit(
+            [&](auto&& value) {
+                using type = std::decay_t<decltype(value)>;
+                if constexpr (std::is_same_v<type, bool>)
                 {
-                    visited.push_back(stack.back());
-                    serializedBeginStack.push_back(static_cast<int>(serializedStack.size()));
-                    for (const auto& element : value)
-                    {
-                        stack.push_back(&element.value_);
-                    }
+                    serializedStack.push_back(boolean[value]);
+                    stack.pop_back();
                 }
-                else
+                else if constexpr (TypePack<int, double>::contains<type>)
                 {
-                    const auto serializedBegin = pop(serializedBeginStack);
-                    const auto reversedSerializedEnd = static_cast<int>(serializedStack.size()) - serializedBegin;
-                    auto first = true;
                     auto stream = std::stringstream{};
-                    stream << '[';
-                    for (auto position = serializedStack.crbegin();
-                         position != serializedStack.crbegin() + reversedSerializedEnd; ++position)
-                    {
-                        stream << separator[first] << *position;
-                        first = false;
-                    }
-                    stream << ']';
-                    serializedStack.erase(serializedStack.cbegin() + serializedBegin, serializedStack.cend());
+                    stream << value;
                     serializedStack.push_back(stream.str());
                     stack.pop_back();
                 }
-            }
-            else if constexpr (std::is_same_v<type, object_type>)
-            {
-                if (!contains(visited, stack.back()))
+                else if constexpr (std::is_same_v<type, string_type>)
                 {
-                    visited.push_back(stack.back());
-                    serializedBeginStack.push_back(static_cast<int>(serializedStack.size()));
-                    for (const auto& entry : value)
-                    {
-                        stack.push_back(&entry.second.value_);
-                        serializedStack.push_back(entry.first);
-                    }
-                }
-                else
-                {
-                    const auto serializedKeysBegin = pop(serializedBeginStack);
-                    const auto serializedValuesOffset =
-                        (static_cast<int>(serializedStack.size()) - serializedKeysBegin) / 2;
-                    auto first = true;
-                    auto stream = std::stringstream{};
-                    stream << '{';
-                    for (auto i = 0; i < serializedValuesOffset; ++i)
-                    {
-                        stream << separator[first] << "\"" << *(serializedStack.cbegin() + serializedKeysBegin + i)
-                               << "\":" << *(serializedStack.cend() - i - 1);
-                        first = false;
-                    }
-                    stream << '}';
-                    serializedStack.erase(serializedStack.cbegin() + serializedKeysBegin, serializedStack.cend());
-                    serializedStack.push_back(stream.str());
+                    serializedStack.push_back("\"" + value + "\"");
                     stack.pop_back();
                 }
-            }
-        };
-        std::visit(visitor, *stack.back());
+                else if constexpr (std::is_same_v<type, null_type>)
+                {
+                    serializedStack.push_back("null");
+                    stack.pop_back();
+                }
+                else if constexpr (std::is_same_v<type, list_type>)
+                {
+                    if (!contains(visited, stack.back()))
+                    {
+                        visited.push_back(stack.back());
+                        serializedBeginStack.push_back(static_cast<int>(serializedStack.size()));
+                        for (const auto& element : value)
+                        {
+                            stack.push_back(&element.value_);
+                        }
+                    }
+                    else
+                    {
+                        const auto serializedBegin = pop(serializedBeginStack);
+                        const auto reversedSerializedEnd = static_cast<int>(serializedStack.size()) - serializedBegin;
+                        auto first = true;
+                        auto stream = std::stringstream{};
+                        stream << '[';
+                        for (auto position = serializedStack.crbegin();
+                             position != serializedStack.crbegin() + reversedSerializedEnd; ++position)
+                        {
+                            stream << separator[first] << *position;
+                            first = false;
+                        }
+                        stream << ']';
+                        serializedStack.erase(serializedStack.cbegin() + serializedBegin, serializedStack.cend());
+                        serializedStack.push_back(stream.str());
+                        stack.pop_back();
+                    }
+                }
+                else if constexpr (std::is_same_v<type, object_type>)
+                {
+                    if (!contains(visited, stack.back()))
+                    {
+                        visited.push_back(stack.back());
+                        serializedBeginStack.push_back(static_cast<int>(serializedStack.size()));
+                        for (const auto& entry : value)
+                        {
+                            stack.push_back(&entry.second.value_);
+                            serializedStack.push_back(entry.first);
+                        }
+                    }
+                    else
+                    {
+                        const auto serializedKeysBegin = pop(serializedBeginStack);
+                        const auto serializedValuesOffset =
+                            (static_cast<int>(serializedStack.size()) - serializedKeysBegin) / 2;
+                        auto first = true;
+                        auto stream = std::stringstream{};
+                        stream << '{';
+                        for (auto i = 0; i < serializedValuesOffset; ++i)
+                        {
+                            stream << separator[first] << "\"" << *(serializedStack.cbegin() + serializedKeysBegin + i)
+                                   << "\":" << *(serializedStack.cend() - i - 1);
+                            first = false;
+                        }
+                        stream << '}';
+                        serializedStack.erase(serializedStack.cbegin() + serializedKeysBegin, serializedStack.cend());
+                        serializedStack.push_back(stream.str());
+                        stack.pop_back();
+                    }
+                }
+            },
+            *stack.back());
     }
     return std::move(serializedStack.back());
 }
