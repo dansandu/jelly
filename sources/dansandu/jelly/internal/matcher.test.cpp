@@ -1,6 +1,6 @@
+#include "dansandu/jelly/internal/matcher.hpp"
 #include "catchorg/catch/catch.hpp"
 #include "dansandu/glyph/symbol.hpp"
-#include "dansandu/jelly/internal/matcher.hpp"
 
 using dansandu::glyph::symbol::Symbol;
 using dansandu::jelly::internal::matcher::ExactMatcher;

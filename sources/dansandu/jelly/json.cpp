@@ -72,7 +72,8 @@ Json Json::deserialize(const std::string_view json)
     auto stack = std::vector<Json>{};
     auto listBeginStack = std::vector<int>{};
 
-    const auto visitor = [&](const Node& node) {
+    const auto visitor = [&](const Node& node)
+    {
         if (node.isToken())
         {
             const auto& token = node.getToken();
@@ -177,7 +178,8 @@ std::string Json::serialize() const
     while (!stack.empty())
     {
         std::visit(
-            [&](auto&& value) {
+            [&](auto&& value)
+            {
                 using type = std::decay_t<decltype(value)>;
                 if constexpr (std::is_same_v<type, bool>)
                 {

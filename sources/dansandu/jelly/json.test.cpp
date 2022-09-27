@@ -1,6 +1,6 @@
+#include "dansandu/jelly/json.hpp"
 #include "catchorg/catch/catch.hpp"
 #include "dansandu/jelly/error.hpp"
-#include "dansandu/jelly/json.hpp"
 
 using Catch::Detail::Approx;
 using dansandu::jelly::error::JsonDeserializationError;
@@ -138,7 +138,7 @@ TEST_CASE("Json")
         }
     }
 
-    SECTION("mutate")
+    SECTION("deserialize then mutate")
     {
         auto json = Json::deserialize(R"({"array":[0,1],"bool":true,"real":0.25})");
 
@@ -177,6 +177,18 @@ TEST_CASE("Json")
             json["bool"] = false;
 
             REQUIRE(!json["bool"].get<bool>());
+        }
+    }
+
+    SECTION("construct then mutate")
+    {
+        SECTION("non-empty list")
+        {
+            auto json = Json::list(3);
+            json[0] = std::string{"myString"};
+            json[2] = 100;
+
+            REQUIRE(json.serialize() == R"(["myString",null,100])");
         }
     }
 

@@ -45,6 +45,11 @@ public:
         return Json{std::move(vector)};
     }
 
+    static Json list(int size)
+    {
+        return Json{list_type(size)};
+    }
+
     static Json string(string_type str)
     {
         return Json{std::move(str)};
