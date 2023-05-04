@@ -7,7 +7,7 @@ dependencies:
   version: 1.+0.+0
 - organization: dansandu
   artifact: ballotin
-  version: 1.+0.+0
+  version: 1.+0.+0.SNAPSHOT
 - organization: catchorg
   artifact: catch
   version: 2.+5.+0
