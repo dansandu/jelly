@@ -71,8 +71,19 @@ Json Json::deserialize(const std::string_view json)
 
     auto stack = std::vector<Json>{};
     auto listBeginStack = std::vector<int>{};
+    auto nodes = std::vector<Node>{};
 
-    const auto visitor = [&](const Node& node)
+    try
+    {
+        const auto tokens = tokenize(json, symbols);
+        nodes = parser.parse(json, tokens);
+    }
+    catch (const SyntaxError& error)
+    {
+        THROW(JsonDeserializationError, error.what());
+    }
+
+    for (const auto& node : nodes)
     {
         if (node.isToken())
         {
@@ -151,16 +162,6 @@ Json Json::deserialize(const std::string_view json)
                 stack.emplace_back(std::move(list));
             }
         }
-    };
-
-    try
-    {
-        const auto tokens = tokenize(json, symbols);
-        parser.parse(tokens, visitor);
-    }
-    catch (const SyntaxError& error)
-    {
-        THROW(JsonDeserializationError, error.what());
     }
 
     return std::move(stack.back());
@@ -168,8 +169,8 @@ Json Json::deserialize(const std::string_view json)
 
 std::string Json::serialize() const
 {
-    static constexpr const char* boolean[] = {"false", "true"};
-    static constexpr const char* separator[] = {",", ""};
+    constexpr const char* boolean[] = {"false", "true"};
+    constexpr const char* separator[] = {",", ""};
 
     auto stack = std::vector<const value_type*>{&value_};
     auto visited = std::vector<const value_type*>{};
