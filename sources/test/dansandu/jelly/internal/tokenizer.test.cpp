@@ -1,6 +1,6 @@
 #include "dansandu/jelly/internal/tokenizer.hpp"
-#include "catchorg/catch/catch.hpp"
 #include "dansandu/glyph/token.hpp"
+#include "dansandu/radiance/radiance.hpp"
 
 #include <vector>
 
@@ -19,7 +19,7 @@ TEST_CASE("Tokenizer")
     const auto symbols = SymbolPack{Symbol{0}, Symbol{1}, Symbol{2}, Symbol{3}, Symbol{4}, Symbol{5}, Symbol{6},
                                     Symbol{7}, Symbol{8}, Symbol{9}, Symbol{10}, Symbol{11}, Symbol{12}};
 
-    REQUIRE(tokenize(json, symbols) == std::vector<Token>{
+    const auto expectedSymbols = std::vector<Token>{
         {symbols.string, 0, 12},
         {symbols.colon, 12, 13},
         {symbols.whitespace, 13, 14},
@@ -50,6 +50,8 @@ TEST_CASE("Tokenizer")
         {symbols.colon, 99, 100},
         {symbols.null, 100, 104},
         {symbols.objectEnd, 104, 105}
-    });
+    };
+
+    REQUIRE(tokenize(json, symbols) == expectedSymbols);
 }
 // clang-format on
