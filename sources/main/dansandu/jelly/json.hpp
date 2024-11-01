@@ -7,6 +7,7 @@
 #include <stdexcept>
 #include <string>
 #include <string_view>
+#include <variant>
 #include <vector>
 
 namespace dansandu::jelly::json
@@ -25,7 +26,7 @@ private:
         dansandu::ballotin::type_traits::TypePack<null_type, bool, int, double, string_type, list_type, object_type>;
     using safe_cast_types = dansandu::ballotin::type_traits::TypePack<bool, int, double, string_type>;
 
-    using value_type = typename held_types::VariantType;
+    using value_type = typename held_types::ExpandedInto<std::variant>;
 
 public:
     static Json deserialize(const std::string_view json);

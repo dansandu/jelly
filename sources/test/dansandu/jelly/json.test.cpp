@@ -1,10 +1,10 @@
 #include "dansandu/jelly/json.hpp"
-#include "catchorg/catch/catch.hpp"
 #include "dansandu/jelly/error.hpp"
+#include "dansandu/radiance/radiance.hpp"
 
-using Catch::Detail::Approx;
 using dansandu::jelly::error::JsonDeserializationError;
 using dansandu::jelly::json::Json;
+using dansandu::radiance::Tolerance;
 
 TEST_CASE("Json")
 {
@@ -20,7 +20,7 @@ TEST_CASE("Json")
 
             REQUIRE(json.is<Json::null_type>());
 
-            REQUIRE_THROWS_AS(static_cast<Json::string_type>(json), std::logic_error);
+            REQUIRE_THROW(static_cast<Json::string_type>(json), std::logic_error);
         }
 
         SECTION("boolean")
@@ -35,7 +35,7 @@ TEST_CASE("Json")
 
             REQUIRE(json.get<bool>());
 
-            REQUIRE_THROWS_AS(static_cast<int>(json), std::logic_error);
+            REQUIRE_THROW(static_cast<int>(json), std::logic_error);
         }
 
         SECTION("integer")
@@ -50,7 +50,7 @@ TEST_CASE("Json")
 
             REQUIRE(json.get<int>() == 73);
 
-            REQUIRE_THROWS_AS(static_cast<double>(json), std::logic_error);
+            REQUIRE_THROW(static_cast<double>(json), std::logic_error);
         }
 
         SECTION("double")
@@ -63,7 +63,7 @@ TEST_CASE("Json")
 
             REQUIRE(json.is<double>());
 
-            REQUIRE(json.get<double>() == Approx(0.125));
+            REQUIRE(json.get<double>() == Tolerance(0.125));
         }
 
         SECTION("string")
@@ -95,7 +95,7 @@ TEST_CASE("Json")
 
             REQUIRE(json[2].get<Json::string_type>() == "str");
 
-            REQUIRE_THROWS_AS(json[3], std::logic_error);
+            REQUIRE_THROW(json[3], std::logic_error);
         }
 
         SECTION("empty list")
@@ -125,7 +125,7 @@ TEST_CASE("Json")
 
             REQUIRE(json["c"]["d"].get<Json::string_type>() == "value");
 
-            REQUIRE_THROWS_AS(json["e"], std::logic_error);
+            REQUIRE_THROW(json["e"], std::logic_error);
         }
 
         SECTION("empty object")
@@ -249,7 +249,7 @@ TEST_CASE("Json")
         {
             json[1]["location"][0] = 30.0;
 
-            REQUIRE(json[1]["location"][0].get<double>() == Approx(30.0));
+            REQUIRE(json[1]["location"][0].get<double>() == Tolerance(30.0));
 
             json[1]["timestamp"].get<int>() += 20;
 
@@ -263,12 +263,12 @@ TEST_CASE("Json")
 
     SECTION("bad json")
     {
-        REQUIRE_THROWS_AS(Json::deserialize(R"({"badColonMember"; [1, 2, 3]})"), JsonDeserializationError);
+        REQUIRE_THROW(Json::deserialize(R"({"badColonMember"; [1, 2, 3]})"), JsonDeserializationError);
 
-        REQUIRE_THROWS_AS(Json::deserialize(R"({"goodString": missingQuoteString")"), JsonDeserializationError);
+        REQUIRE_THROW(Json::deserialize(R"({"goodString": missingQuoteString")"), JsonDeserializationError);
 
-        REQUIRE_THROWS_AS(Json::deserialize(R"({"duplicateKey": false, "duplicateKey": "value"})"),
-                          JsonDeserializationError);
+        REQUIRE_THROW(Json::deserialize(R"({"duplicateKey": false, "duplicateKey": "value"})"),
+                      JsonDeserializationError);
     }
 
     SECTION("README example")
@@ -309,8 +309,12 @@ TEST_CASE("Json")
 
         REQUIRE(!hasPreviousOrder);
 
-        REQUIRE(static_cast<Json::string_type>(orderReceipt["orderId"]) == "471fc736-56e9-4a78-a256-4b6f641b7d13");
+        const auto actualOrderId = static_cast<Json::string_type>(orderReceipt["orderId"]);
 
-        REQUIRE(static_cast<double>(orderReceipt["total"]) == 180.2844);
+        REQUIRE(actualOrderId == "471fc736-56e9-4a78-a256-4b6f641b7d13");
+
+        const auto actualTotal = static_cast<double>(orderReceipt["total"]);
+
+        REQUIRE(actualTotal == 180.2844);
     }
 }
